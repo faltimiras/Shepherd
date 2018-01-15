@@ -25,7 +25,7 @@ public class IntegrationTest {
 
 		ResultsPool<Integer> resultsPool = new ResultsPool();
 
-		Shepherd shepherd = Shepherd.create().basic(1, new NoDuplicatesKeyExtractor(), Optional.of(Arrays.asList(new NoDuplicatesRule())), resultsPool).build();
+		Shepherd shepherd = Shepherd.create().basic(new NoDuplicatesKeyExtractor(), Optional.of(Arrays.asList(new NoDuplicatesRule())), resultsPool).threads(1).build();
 
 		shepherd.add(1);
 		shepherd.add(2);
@@ -47,7 +47,7 @@ public class IntegrationTest {
 
 		ResultsPool resultsPool = new ResultsPool();
 
-		Shepherd shepherd = Shepherd.create().basic(1, new SimpleKeyExtractor(), Optional.of(Arrays.asList(new AccumulateNRule(2))), resultsPool).build();
+		Shepherd shepherd = Shepherd.create().basic(new SimpleKeyExtractor(), Optional.of(Arrays.asList(new AccumulateNRule(2))), resultsPool).threads(1).build();
 
 		shepherd.add(1);
 		shepherd.add(2);
@@ -77,7 +77,7 @@ public class IntegrationTest {
 
 		ResultsPool resultsPool = new ResultsPool();
 
-		Shepherd shepherd = Shepherd.create().basic(1, new SimpleKeyExtractor(), Optional.of(Arrays.asList(new AccumulateNRule(2))), resultsPool).build();
+		Shepherd shepherd = Shepherd.create().basic(new SimpleKeyExtractor(), Optional.of(Arrays.asList(new AccumulateNRule(2))), resultsPool).sync().build();
 
 		shepherd.add(1);
 		shepherd.add(2);
@@ -88,7 +88,6 @@ public class IntegrationTest {
 		shepherd.add(3);
 		shepherd.add(2);
 		shepherd.add(2);
-		Thread.sleep(100);
 
 		assertEquals(4,resultsPool.size());
 		List<List> result = resultsPool.get();
@@ -111,7 +110,7 @@ public class IntegrationTest {
 
 		ResultsPool resultsPool = new ResultsPool();
 
-		Shepherd shepherd = Shepherd.create().basic(1, new SimpleKeyExtractor(), Optional.empty(), resultsPool).withDog(Duration.ofMillis(50), Arrays.asList(new AccumulateNRule(2))).build();
+		Shepherd shepherd = Shepherd.create().basic(new SimpleKeyExtractor(), Optional.empty(), resultsPool).threads(1).withDog(Duration.ofMillis(50), Arrays.asList(new AccumulateNRule(2))).build();
 
 		shepherd.add(1);
 		shepherd.add(1);
@@ -130,7 +129,7 @@ public class IntegrationTest {
 
 		ResultsPool resultsPool = new ResultsPool();
 
-		Shepherd shepherd = Shepherd.create().basic(1, new SimpleKeyExtractor(), Optional.empty(), resultsPool).withDog(Duration.ofMillis(50), Arrays.asList(new AccumulateNRule(2))).build();
+		Shepherd shepherd = Shepherd.create().basic(new SimpleKeyExtractor(), Optional.empty(), resultsPool).threads(1).withDog(Duration.ofMillis(50), Arrays.asList(new AccumulateNRule(2))).build();
 
 		shepherd.add(1);
 		shepherd.add(1);

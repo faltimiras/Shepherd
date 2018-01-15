@@ -3,7 +3,7 @@ package cat.altimiras.shepherd.rules.keyextractors;
 
 import cat.altimiras.shepherd.KeyExtractor;
 
-public class NoDuplicatesKeyExtractor implements KeyExtractor<Object> {
+public class NoDuplicatesKeyExtractor implements KeyExtractor<Object, Object> {
 
 	private static final String KEY = "k";
 

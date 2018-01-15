@@ -8,6 +8,7 @@ import cat.altimiras.shepherd.scheduler.Scheduler;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -15,43 +16,54 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Consumer;
 
 public class Shepherd<T> {
 
 	private final KeyExtractor keyExtractor;
 
-	private final LinkedBlockingQueue<Element<T>>[] queues;
+	private LinkedBlockingQueue<Element<T>>[] queues;
 
-	private final ExecutorService pool;
+	private ExecutorService pool;
 
-	private final int threads;
+	private int threads;
 
 	private final Callback<T> callback;
 
 	private final RuleExecutor<T> ruleExecutor;
 
+	private QueueConsumer<T> syncConsumer = null;
 
-	private Shepherd(int thread, KeyExtractor keyExtractor, List<Rule<T>> rules, RuleExecutor<T> ruleExecutor, Callback<T> callback, Optional<Dog> dog) {
 
-		this.threads = thread;
-		this.queues = new LinkedBlockingQueue[thread];
-		Arrays.fill(queues, new LinkedBlockingQueue());
+	private Shepherd(int thread, KeyExtractor keyExtractor, List<Rule<T>> rules, RuleExecutor<T> ruleExecutor, Callback<T> callback, Optional<Dog> dog, boolean sync) {
 
-		this.pool = Executors.newFixedThreadPool(thread);
+
 		this.keyExtractor = keyExtractor;
 		this.callback = callback;
 		this.ruleExecutor = ruleExecutor;
 
-		startConsumers(rules, dog);
+		if (!sync) {
+			this.threads = thread;
+			this.queues = new LinkedBlockingQueue[thread];
+			Arrays.fill(queues, new LinkedBlockingQueue());
+
+			this.pool = Executors.newFixedThreadPool(thread);
+
+			startConsumers(rules, dog);
+		}
+		else {
+			syncConsumer = new BasicConsumer(rules,null, this.ruleExecutor, this.callback);
+		}
+
 	}
 
 	private void startConsumers(List<Rule<T>> rules, Optional<Dog> dog) {
 		for (int i = 0; i < threads; i++) {
-			pool.submit(getConsumer(rules, dog, i));
+			pool.submit(getAsyncConsumer(rules, dog, i));
 		}
 	}
 
-	private QueueConsumer getConsumer(List<Rule<T>> rules, Optional<Dog> dog, int index) {
+	private QueueConsumer getAsyncConsumer(List<Rule<T>> rules, Optional<Dog> dog, int index) {
 		if (dog.isPresent()) {
 			Scheduler scheduler = new BasicScheduler(Clock.systemUTC(), dog.get().ttl);
 			return new DogConsumer(rules, this.ruleExecutor, this.queues[index], scheduler, dog.get().rulesTimeout, dog.get().ttl, Clock.systemUTC(), dog.get().ruleExecutor, this.callback);
@@ -61,16 +73,28 @@ public class Shepherd<T> {
 		}
 	}
 
-	public void add(T t) throws Exception {
+	public void add(T t, Instant timestmap) throws Exception {
 		Object key = keyExtractor.key(t);
-		Element element = new Element(key, t);
-		if (queues.length == 1) {
-			queues[0].put(element);
+		Element element = timestmap == null ? new Element(key, t) : new Element(key, t, timestmap);
+		if (syncConsumer == null) {
+			if (queues.length == 1) {
+				queues[0].put(element);
+			}
+			else {
+				int indexQueue = key.hashCode() % threads;
+				queues[indexQueue].put(element);
+			}
+		} else {
+			syncConsumer.consume(element);
 		}
-		else {
-			int indexQueue = key.hashCode() % threads;
-			queues[indexQueue].put(element);
-		}
+	}
+
+	public void add(T t, Long timestmap) throws Exception {
+		add(t, Instant.ofEpochMilli(timestmap));
+	}
+
+	public void add(T t) throws Exception {
+		add(t, (Instant) null);
 	}
 
 	public void stop() {
@@ -81,8 +105,9 @@ public class Shepherd<T> {
 		return new ShepherdBuilder();
 	}
 
-	static class ShepherdBuilder<T> {
+	public static class ShepherdBuilder<T> {
 
+		private boolean sync = false;
 		private int thread;
 		private KeyExtractor keyExtractor;
 		private List<Rule<T>> rules;
@@ -90,13 +115,9 @@ public class Shepherd<T> {
 		private DogBuilder<T> dogBuilder = null;
 		private RuleExecutor ruleExecutor = new IndependentExecutor();
 
-		public ShepherdBuilder basic(int thread, KeyExtractor keyExtractor, Optional<List<Rule<T>>> rules, Callback<T> callback) throws Exception {
+		public ShepherdBuilder basic(KeyExtractor keyExtractor, Optional<List<Rule<T>>> rules, Callback<T> callback) throws Exception {
 
-			if (thread < 1) {
-				throw new IllegalArgumentException("threads must be bigger than 0");
-			}
-			this.thread = thread;
-
+			this.thread = 1;
 			if (rules.isPresent()) {
 				this.rules = Collections.unmodifiableList(rules.get());
 			}
@@ -121,23 +142,39 @@ public class Shepherd<T> {
 			return this;
 		}
 
+		public ShepherdBuilder sync() {
+			this.sync = true;
+			return this;
+		}
+
+		public ShepherdBuilder threads(int thread) {
+			if (thread < 1) {
+				throw new IllegalArgumentException("threads must be bigger than 0");
+			}
+			this.thread = thread;
+			return this;
+		}
+
 		public DogBuilder withDog(Duration ttl, List<Rule<T>> rules) {
 			this.dogBuilder = new DogBuilder<T>(this, ttl, rules);
 			return this.dogBuilder;
 		}
 
 		public Shepherd build() {
-			Shepherd shepherd = new Shepherd<T>(thread, keyExtractor, rules, ruleExecutor, callback, Optional.empty());
+			Shepherd shepherd = new Shepherd<T>(thread, keyExtractor, rules, ruleExecutor, callback, Optional.empty(), sync);
 			return shepherd;
 		}
 
 		private Shepherd build(Dog dog) {
-			Shepherd shepherd = new Shepherd<T>(thread, keyExtractor, rules, ruleExecutor, callback, Optional.ofNullable(dog));
+			if (this.sync) {
+				throw new IllegalArgumentException("Mode sync with dow is not supported");
+			}
+			Shepherd shepherd = new Shepherd<T>(thread, keyExtractor, rules, ruleExecutor, callback, Optional.ofNullable(dog), sync);
 			return shepherd;
 		}
 	}
 
-	static class DogBuilder<T> {
+	public static class DogBuilder<T> {
 
 		private ShepherdBuilder shepherdBuilder;
 		private List<Rule<T>> rules;

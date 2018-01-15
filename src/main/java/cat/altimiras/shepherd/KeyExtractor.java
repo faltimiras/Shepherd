@@ -1,6 +1,6 @@
 package cat.altimiras.shepherd;
 
-public interface KeyExtractor<T> {
+public interface KeyExtractor<T, K> {
 
-	Object key(T t);
+	K key(T t) throws Exception;
 }
