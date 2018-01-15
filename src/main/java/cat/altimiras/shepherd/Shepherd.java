@@ -16,9 +16,12 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Shepherd<T> {
+
+	protected static Logger log = Logger.getLogger(Shepherd.class.getSimpleName());
 
 	private final KeyExtractor keyExtractor;
 
@@ -52,6 +55,9 @@ public class Shepherd<T> {
 			startConsumers(rules, dog);
 		}
 		else {
+			if (thread > 1) {
+				log.log(Level.WARNING, "On SYNC mode, number of threads is ignored!");
+			}
 			syncConsumer = new BasicConsumer(rules,null, this.ruleExecutor, this.callback);
 		}
 
