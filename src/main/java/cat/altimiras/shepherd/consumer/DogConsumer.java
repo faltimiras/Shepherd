@@ -41,21 +41,23 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 	@Override
 	public void run() {
 		try {
-			while (true) {
+			if ( scheduler != null) {
+				while (true) {
 
-				long millis = this.scheduler.calculateWaitingTime();
+					long millis = this.scheduler.calculateWaitingTime();
 
-				if (millis <= 0) {
-					checkTimeouts();
-				}
-				else {
-					log.log(Level.FINE, "Waiting for next element. Max ms: {}", millis);
-					Element<T> element = queue.poll(millis, TimeUnit.MILLISECONDS);
-					if (element == null) {
+					if (millis <= 0) {
 						checkTimeouts();
 					}
 					else {
-						consume(element);
+						log.log(Level.FINE, "Waiting for next element. Max ms: {}", millis);
+						Element<T> element = queue.poll(millis, TimeUnit.MILLISECONDS);
+						if (element == null) {
+							checkTimeouts();
+						}
+						else {
+							consume(element);
+						}
 					}
 				}
 			}
@@ -63,6 +65,7 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 		catch (InterruptedException e) {
 			//nothing to do
 		}
+
 	}
 
 	@Override
@@ -80,7 +83,7 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 		storage.remove(key);
 	}
 
-	void checkTimeouts() {
+	public void checkTimeouts() {
 
 		log.log(Level.FINE, "Dog gonna run for timeouts");
 
@@ -111,6 +114,8 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 			}
 		}
 
-		scheduler.justExecuted();
+		if (scheduler != null) {
+			scheduler.justExecuted();
+		}
 	}
 }
