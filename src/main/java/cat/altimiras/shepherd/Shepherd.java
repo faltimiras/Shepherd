@@ -79,28 +79,43 @@ public class Shepherd<T> {
 		}
 	}
 
-	public void add(T t, Instant timestmap) throws Exception {
-		Object key = keyExtractor.key(t);
-		Element element = timestmap == null ? new Element(key, t) : new Element(key, t, timestmap);
-		if (syncConsumer == null) {
-			if (queues.length == 1) {
-				queues[0].put(element);
+	public boolean add(T t, Instant timestmap) {
+		try {
+			Object key = keyExtractor.key(t);
+			if (key == null) {
+				log.log(Level.SEVERE, "Extracted key == null, discarding object");
+				log.log(Level.INFO, "Element discarded {0}", t);
+				return false;
 			}
 			else {
-				int indexQueue = key.hashCode() % threads;
-				queues[indexQueue].put(element);
+				Element element = timestmap == null ? new Element(key, t) : new Element(key, t, timestmap);
+				if (syncConsumer == null) {
+					if (queues.length == 1) {
+						queues[0].put(element);
+					}
+					else {
+						int indexQueue = key.hashCode() % threads;
+						queues[indexQueue].put(element);
+					}
+				}
+				else {
+					syncConsumer.consume(element);
+				}
 			}
-		} else {
-			syncConsumer.consume(element);
+			return true;
+		}
+		catch (Exception e) {
+			log.log(Level.SEVERE, "Error adding element", e);
+			return false;
 		}
 	}
 
-	public void add(T t, Long timestmap) throws Exception {
-		add(t, Instant.ofEpochMilli(timestmap));
+	public boolean add(T t, Long timestmap) {
+		return  add(t, Instant.ofEpochMilli(timestmap));
 	}
 
-	public void add(T t) throws Exception {
-		add(t, (Instant) null);
+	public boolean add(T t) {
+		return add(t, (Instant) null);
 	}
 
 	public void stop() {

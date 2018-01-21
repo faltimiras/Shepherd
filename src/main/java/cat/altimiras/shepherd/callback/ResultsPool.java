@@ -35,6 +35,10 @@ public class ResultsPool<T> implements Callback<T> {
 		return results.size();
 	}
 
+	public boolean isEmpty() {
+		return results.isEmpty();
+	}
+
 	@Override
 	public void accept(List<T> t) {
 		results.add(t);
