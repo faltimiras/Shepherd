@@ -18,10 +18,10 @@ import java.util.List;
 public class IndependentExecutor<T> implements RuleExecutor<T> {
 
 	@Override
-	public RuleResult<T> execute(Element<T> elements, List<Rule<T>> rules) {
+	public RuleResult<T> execute(Element<T> element, List<Rule<T>> rules) {
 		RuleResult result = null;
 		for (Rule rule : rules) {
-			result = rule.canGroup(elements);
+			result = rule.canGroup(element);
 			if (result.canGroup()) {
 				return result;
 			}

@@ -102,7 +102,7 @@ public class Element<T> {
 	}
 
 	public Element(Element origin, int numberOfElementGroup, boolean discard) {
-		this(origin, numberOfElementGroup, discard, false);
+		this(origin, numberOfElementGroup, discard, true);
 	}
 
 	void addValue(T value) {

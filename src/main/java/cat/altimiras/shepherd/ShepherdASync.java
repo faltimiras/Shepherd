@@ -40,11 +40,16 @@ public class ShepherdASync<T> implements Shepherd<T> {
 
 		this.threads = thread;
 		this.queues = new LinkedBlockingQueue[thread];
-		Arrays.fill(queues, new LinkedBlockingQueue());
-
 		this.pool = Executors.newFixedThreadPool(thread);
 
+		initializeQueues();
 		startConsumers(rules, dog);
+	}
+
+	private void initializeQueues() {
+		for (int i = 0; i < queues.length; i++) {
+			queues[i] = new LinkedBlockingQueue();
+		}
 	}
 
 	private void startConsumers(List<Rule<T>> rules, Optional<ShepherdBuilder.Dog> dog) {
