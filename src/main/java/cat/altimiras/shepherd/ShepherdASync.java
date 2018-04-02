@@ -83,7 +83,8 @@ public class ShepherdASync<T> implements Shepherd<T> {
 				}
 				else {
 					int indexQueue = key.hashCode() % threads;
-					queues[indexQueue].put(element);
+					//hashcode can be negative
+					queues[indexQueue < 0 ? -indexQueue : indexQueue].put(element);
 				}
 			}
 			return true;
