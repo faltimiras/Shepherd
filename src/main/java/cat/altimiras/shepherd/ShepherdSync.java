@@ -2,17 +2,17 @@ package cat.altimiras.shepherd;
 
 import cat.altimiras.shepherd.consumer.BasicConsumer;
 import cat.altimiras.shepherd.consumer.DogConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-public class ShepherdSync<T> implements Shepherd<T>{
+public class ShepherdSync<T> implements Shepherd<T> {
 
-	protected static Logger log = Logger.getLogger(ShepherdSync.class.getSimpleName());
+	protected static Logger log = LoggerFactory.getLogger(ShepherdSync.class);
 
 	private final KeyExtractor keyExtractor;
 
@@ -43,8 +43,8 @@ public class ShepherdSync<T> implements Shepherd<T>{
 		try {
 			Object key = keyExtractor.key(t);
 			if (key == null) {
-				log.log(Level.SEVERE, "Extracted key == null, discarding object");
-				log.log(Level.INFO, "Element discarded {0}", t);
+				log.error("Extracted key == null, discarding object");
+				log.info("Element discarded {0}", t);
 				return false;
 			}
 			else {
@@ -54,7 +54,7 @@ public class ShepherdSync<T> implements Shepherd<T>{
 			return true;
 		}
 		catch (Exception e) {
-			log.log(Level.SEVERE, "Error adding element", e);
+			log.error("Error adding element", e);
 			return false;
 		}
 	}
@@ -69,8 +69,9 @@ public class ShepherdSync<T> implements Shepherd<T>{
 
 	public void forceTimeout() {
 		if (hasDog) {
-			((DogConsumer)syncConsumer).checkTimeouts();
-		} else {
+			((DogConsumer) syncConsumer).checkTimeouts();
+		}
+		else {
 			throw new UnsupportedOperationException("Can not force timeout if shepheard has not a dog");
 		}
 	}

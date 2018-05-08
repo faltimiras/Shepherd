@@ -16,11 +16,11 @@ public class ShepherdBuilder<T> {
 	private DogBuilder<T> dogBuilder = null;
 	private RuleExecutor ruleExecutor = new IndependentExecutor();
 
-	private ShepherdBuilder(){
+	private ShepherdBuilder() {
 
 	}
 
-	public static ShepherdBuilder create(){
+	public static ShepherdBuilder create() {
 		return new ShepherdBuilder();
 	}
 

@@ -1,14 +1,15 @@
 package cat.altimiras.shepherd;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public abstract class QueueConsumer<T> implements Runnable {
 
-	protected static Logger log = Logger.getLogger(QueueConsumer.class.getSimpleName());
+	protected static Logger log = LoggerFactory.getLogger(QueueConsumer.class);
 
 	protected final List<Rule<T>> rules;
 	protected final BlockingQueue<Element<T>> queue;
@@ -38,7 +39,7 @@ public abstract class QueueConsumer<T> implements Runnable {
 			}
 		}
 		catch (Exception e) {
-			log.log(Level.SEVERE, "Error consuming element", e);
+			log.error("Error consuming element", e);
 		}
 	}
 

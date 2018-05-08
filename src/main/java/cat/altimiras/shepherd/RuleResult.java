@@ -44,7 +44,7 @@ public class RuleResult<T> {
 	}
 
 	public static RuleResult canNotGroup(Element toKeep) {
-		if (toKeep == null || toKeep.getValues() == null || toKeep.getValues().isEmpty()){
+		if (toKeep == null || toKeep.getValues() == null || toKeep.getValues().isEmpty()) {
 			return new RuleResult(false, null, null);
 		}
 		return new RuleResult(false, null, toKeep);

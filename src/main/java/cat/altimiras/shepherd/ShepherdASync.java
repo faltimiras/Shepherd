@@ -4,21 +4,20 @@ import cat.altimiras.shepherd.consumer.BasicConsumer;
 import cat.altimiras.shepherd.consumer.DogConsumer;
 import cat.altimiras.shepherd.scheduler.BasicScheduler;
 import cat.altimiras.shepherd.scheduler.Scheduler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ShepherdASync<T> implements Shepherd<T> {
 
-	protected static Logger log = Logger.getLogger(ShepherdASync.class.getSimpleName());
+	protected static Logger log = LoggerFactory.getLogger(ShepherdASync.class);
 
 	private final KeyExtractor keyExtractor;
 
@@ -47,7 +46,7 @@ public class ShepherdASync<T> implements Shepherd<T> {
 	}
 
 	private void initializeQueues() {
-		for (int i = 0; i < queues.length; i++) {
+		for (int i = 0; i < threads; i++) {
 			queues[i] = new LinkedBlockingQueue();
 		}
 	}
@@ -72,8 +71,8 @@ public class ShepherdASync<T> implements Shepherd<T> {
 		try {
 			Object key = keyExtractor.key(t);
 			if (key == null) {
-				log.log(Level.SEVERE, "Extracted key == null, discarding object");
-				log.log(Level.INFO, "Element discarded {0}", t);
+				log.error("Extracted key == null, discarding object");
+				log.info("Element discarded {0}", t);
 				return false;
 			}
 			else {
@@ -90,7 +89,7 @@ public class ShepherdASync<T> implements Shepherd<T> {
 			return true;
 		}
 		catch (Exception e) {
-			log.log(Level.SEVERE, "Error adding element", e);
+			log.error("Error adding element", e);
 			return false;
 		}
 	}

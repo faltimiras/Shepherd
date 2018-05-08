@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
 public class DogConsumer<T> extends QueueConsumer<T> {
 
@@ -41,7 +40,7 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 	@Override
 	public void run() {
 		try {
-			if ( scheduler != null) {
+			if (scheduler != null) {
 				while (true) {
 
 					long millis = this.scheduler.calculateWaitingTime();
@@ -50,7 +49,7 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 						checkTimeouts();
 					}
 					else {
-						log.log(Level.FINE, "Waiting for next element. Max ms: {}", millis);
+						log.info("Waiting for next element. Max ms: {}", millis);
 						Element<T> element = queue.poll(millis, TimeUnit.MILLISECONDS);
 						if (element == null) {
 							checkTimeouts();
@@ -85,7 +84,7 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 
 	public void checkTimeouts() {
 
-		log.log(Level.FINE, "Dog gonna run for timeouts");
+		log.debug("Dog gonna run for timeouts");
 
 		Iterator<Element<T>> it = storage.values().iterator();
 
