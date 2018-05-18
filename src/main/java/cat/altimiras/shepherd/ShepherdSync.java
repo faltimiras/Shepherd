@@ -10,26 +10,17 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-public class ShepherdSync<T> implements Shepherd<T> {
+public class ShepherdSync<T> extends ShepherdBase<T> {
 
-	protected static Logger log = LoggerFactory.getLogger(ShepherdSync.class);
-
-	private final KeyExtractor keyExtractor;
-
-	private final Callback<T> callback;
-
-	private final RuleExecutor<T> ruleExecutor;
+	protected static final Logger log = LoggerFactory.getLogger(ShepherdSync.class);
 
 	private final QueueConsumer<T> syncConsumer;
 
 	private final boolean hasDog;
 
+	ShepherdSync(KeyExtractor keyExtractor, List<Rule<T>> rules, RuleExecutor<T> ruleExecutor, Callback<T> callback, Optional<ShepherdBuilder.Dog> dog, Optional<ShepherdBuilder.Monitoring> monitoring) {
 
-	ShepherdSync(KeyExtractor keyExtractor, List<Rule<T>> rules, RuleExecutor<T> ruleExecutor, Callback<T> callback, Optional<ShepherdBuilder.Dog> dog) {
-
-		this.keyExtractor = keyExtractor;
-		this.callback = callback;
-		this.ruleExecutor = ruleExecutor;
+		super(keyExtractor, callback, ruleExecutor, 1, monitoring);
 
 		if (hasDog = dog.isPresent()) {
 			syncConsumer = new DogConsumer(rules, this.ruleExecutor, null, null, dog.get().getRulesTimeout(), dog.get().getTtl(), Clock.systemUTC(), dog.get().getRuleExecutor(), this.callback);
@@ -37,6 +28,9 @@ public class ShepherdSync<T> implements Shepherd<T> {
 		else {
 			syncConsumer = new BasicConsumer(rules, null, this.ruleExecutor, this.callback);
 		}
+
+		consumers.add(syncConsumer);
+
 	}
 
 	public boolean add(T t, Instant timestmap) {
@@ -75,5 +69,4 @@ public class ShepherdSync<T> implements Shepherd<T> {
 			throw new UnsupportedOperationException("Can not force timeout if shepheard has not a dog");
 		}
 	}
-
 }

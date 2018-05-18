@@ -6,6 +6,10 @@ import cat.altimiras.shepherd.QueueConsumer;
 import cat.altimiras.shepherd.Rule;
 import cat.altimiras.shepherd.RuleExecutor;
 import cat.altimiras.shepherd.RuleResult;
+import cat.altimiras.shepherd.monitoring.Level;
+import cat.altimiras.shepherd.monitoring.MapExtractor;
+import cat.altimiras.shepherd.monitoring.Stats;
+import cat.altimiras.shepherd.monitoring.metric.Metric;
 import cat.altimiras.shepherd.scheduler.Scheduler;
 
 import java.time.Clock;
@@ -17,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class DogConsumer<T> extends QueueConsumer<T> {
 
@@ -27,6 +32,7 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 	private final Duration ttl;
 	private final Clock clock;
 	private final RuleExecutor<T> ruleExecutorTimeout;
+
 
 	public DogConsumer(List<Rule<T>> rules, RuleExecutor<T> ruleExecutor, BlockingQueue<Element<T>> queue, Scheduler scheduler, List<Rule<T>> rulesTimeout, Duration ttl, Clock clock, RuleExecutor<T> ruleTimeoutExecutor, Callback<T> callback) {
 		super(rules, queue, ruleExecutor, callback);
@@ -64,7 +70,6 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 		catch (InterruptedException e) {
 			//nothing to do
 		}
-
 	}
 
 	@Override
@@ -79,42 +84,66 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 
 	@Override
 	protected void remove(Object key) {
-		storage.remove(key);
+		storageLock.lock();
+		try {
+			storage.remove(key);
+		}
+		finally {
+			storageLock.unlock();
+		}
+	}
+
+	@Override
+	protected Map<Stats, Metric> getStats(Level level) {
+		storageLock.lock();
+		try {
+			return MapExtractor.extract(storage, level);
+		}
+		finally {
+			storageLock.unlock();
+		}
 	}
 
 	public void checkTimeouts() {
 
-		log.debug("Dog gonna run for timeouts");
+		storageLock.lock();
+		try {
 
-		Iterator<Element<T>> it = storage.values().iterator();
+			log.debug("Dog gonna run for timeouts");
 
-		Instant now = clock.instant();
+			Iterator<Element<T>> it = storage.values().iterator();
 
-		boolean stop = false;
-		while (it.hasNext() && !stop) {
-			Element<T> element = it.next();
+			Instant now = clock.instant();
 
-			Duration diff = Duration.between(element.getCreationTs(), now);
-			if (diff.compareTo(ttl) > 0) {
-				RuleResult ruleResult = ruleExecutorTimeout.execute(element, rulesTimeout);
-				if (ruleResult.getToKeep() != null) {
-					storage.put(ruleResult.getToKeep().getKey(), ruleResult.getToKeep());
+			boolean stop = false;
+			while (it.hasNext() && !stop) {
+				Element<T> element = it.next();
+
+				Duration diff = Duration.between(element.getCreationTs(), now);
+				if (diff.compareTo(ttl) > 0) {
+					RuleResult ruleResult = ruleExecutorTimeout.execute(element, rulesTimeout);
+					if (ruleResult.getToKeep() != null) {
+						storage.put(ruleResult.getToKeep().getKey(), ruleResult.getToKeep());
+					}
+					else {
+						it.remove();
+					}
+
+					if (ruleResult.canGroup()) {
+						callback.accept(ruleResult.getGroup());
+					}
 				}
 				else {
-					it.remove();
-				}
-
-				if (ruleResult.canGroup()) {
-					callback.accept(ruleResult.getGroup());
+					stop = true; //elements are ordered by creation time. Make no sense to continue if one is not older, next one wont be
 				}
 			}
-			else {
-				stop = true; //elements are ordered by creation time. Make no sense to continue if one is not older, next one wont be
+
+			if (scheduler != null) {
+				scheduler.justExecuted();
 			}
 		}
-
-		if (scheduler != null) {
-			scheduler.justExecuted();
+		finally {
+			storageLock.unlock();
 		}
 	}
 }

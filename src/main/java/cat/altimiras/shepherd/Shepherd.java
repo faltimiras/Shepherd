@@ -10,5 +10,4 @@ public interface Shepherd<T> {
 
 	boolean add(T t);
 
-
 }

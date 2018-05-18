@@ -9,17 +9,16 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class ShepherdASync<T> implements Shepherd<T> {
+public class ShepherdASync<T> extends ShepherdBase<T> {
 
-	protected static Logger log = LoggerFactory.getLogger(ShepherdASync.class);
-
-	private final KeyExtractor keyExtractor;
+	protected static final Logger log = LoggerFactory.getLogger(ShepherdASync.class);
 
 	private final LinkedBlockingQueue<Element<T>>[] queues;
 
@@ -27,15 +26,9 @@ public class ShepherdASync<T> implements Shepherd<T> {
 
 	private final int threads;
 
-	private final Callback<T> callback;
+	ShepherdASync(int thread, KeyExtractor keyExtractor, List<Rule<T>> rules, RuleExecutor<T> ruleExecutor, Callback<T> callback, Optional<ShepherdBuilder.Dog> dog, Optional<ShepherdBuilder.Monitoring> monitoring) {
 
-	private final RuleExecutor<T> ruleExecutor;
-
-	ShepherdASync(int thread, KeyExtractor keyExtractor, List<Rule<T>> rules, RuleExecutor<T> ruleExecutor, Callback<T> callback, Optional<ShepherdBuilder.Dog> dog) {
-
-		this.keyExtractor = keyExtractor;
-		this.callback = callback;
-		this.ruleExecutor = ruleExecutor;
+		super(keyExtractor, callback, ruleExecutor, thread, monitoring);
 
 		this.threads = thread;
 		this.queues = new LinkedBlockingQueue[thread];
@@ -53,7 +46,9 @@ public class ShepherdASync<T> implements Shepherd<T> {
 
 	private void startConsumers(List<Rule<T>> rules, Optional<ShepherdBuilder.Dog> dog) {
 		for (int i = 0; i < threads; i++) {
-			pool.submit(getAsyncConsumer(rules, dog, i));
+			QueueConsumer qc = getAsyncConsumer(rules, dog, i);
+			consumers.add(qc);
+			pool.submit(qc);
 		}
 	}
 
@@ -72,7 +67,7 @@ public class ShepherdASync<T> implements Shepherd<T> {
 			Object key = keyExtractor.key(t);
 			if (key == null) {
 				log.error("Extracted key == null, discarding object");
-				log.info("Element discarded {0}", t);
+				log.info("Element discarded {}", t);
 				return false;
 			}
 			else {

@@ -1,11 +1,16 @@
 package cat.altimiras.shepherd;
 
+import cat.altimiras.shepherd.monitoring.Level;
+import cat.altimiras.shepherd.monitoring.Stats;
+import cat.altimiras.shepherd.monitoring.metric.Metric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class QueueConsumer<T> implements Runnable {
 
@@ -15,6 +20,7 @@ public abstract class QueueConsumer<T> implements Runnable {
 	protected final BlockingQueue<Element<T>> queue;
 	protected final Callback<T> callback;
 	protected final RuleExecutor ruleExecutor;
+	protected final ReentrantLock storageLock = new ReentrantLock(true);
 
 	public QueueConsumer(List<Rule<T>> rules, BlockingQueue queue, RuleExecutor ruleExecutor, Callback<T> callback) {
 		this.rules = rules;
@@ -62,4 +68,7 @@ public abstract class QueueConsumer<T> implements Runnable {
 			callback.accept(new ArrayList<>(ruleResult.getGroup()));
 		}
 	}
+
+	protected abstract Map<Stats, Metric> getStats(Level level);
+
 }

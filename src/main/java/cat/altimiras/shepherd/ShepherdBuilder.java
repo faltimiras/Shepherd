@@ -1,8 +1,11 @@
 package cat.altimiras.shepherd;
 
 import cat.altimiras.shepherd.executor.IndependentExecutor;
+import cat.altimiras.shepherd.monitoring.Level;
+import cat.altimiras.shepherd.monitoring.StatsListener;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -14,10 +17,11 @@ public class ShepherdBuilder<T> {
 	private List<Rule<T>> rules;
 	private Callback<T> callback;
 	private DogBuilder<T> dogBuilder = null;
+	private MonitoringBuilder monitoringBuilder = null;
 	private RuleExecutor ruleExecutor = new IndependentExecutor();
+	private List<StatsListener> statsListeners;
 
 	private ShepherdBuilder() {
-
 	}
 
 	public static ShepherdBuilder create() {
@@ -59,41 +63,66 @@ public class ShepherdBuilder<T> {
 		return this;
 	}
 
+	public ShepherdBuilder addStatListener(StatsListener statsListener) {
+		if (statsListener == null) {
+			throw new NullPointerException("StatsListener can not be null");
+		}
+
+		if (statsListeners == null) {
+			statsListeners = new ArrayList<>(1);
+		}
+		this.statsListeners.add(statsListener);
+		return this;
+	}
+
 	public DogBuilder withDog(Duration ttl, List<Rule<T>> rules) {
-		this.dogBuilder = new DogBuilder<T>(this, ttl, rules);
+		this.dogBuilder = new DogBuilder<T>(this, this.monitoringBuilder, ttl, rules);
 		return this.dogBuilder;
 	}
 
+	public MonitoringBuilder withMonitoring(StatsListener statsListener, Level level) {
+		this.monitoringBuilder = new MonitoringBuilder(this, this.dogBuilder, statsListener, level);
+		return this.monitoringBuilder;
+	}
+
+	public MonitoringBuilder withMonitoring(StatsListener statsListener) {
+		this.monitoringBuilder = new MonitoringBuilder(this, this.dogBuilder, statsListener, Level.LOW);
+		return this.monitoringBuilder;
+	}
+
 	public ShepherdSync buildSync() {
-		ShepherdSync shepherd = new ShepherdSync<T>(keyExtractor, rules, ruleExecutor, callback, Optional.empty());
+		ShepherdSync shepherd = new ShepherdSync<T>(keyExtractor, rules, ruleExecutor, callback, Optional.empty(), Optional.empty());
 		return shepherd;
 	}
 
-	public ShepherdSync buildSync(Dog dog) {
-		ShepherdSync shepherd = new ShepherdSync<T>(keyExtractor, rules, ruleExecutor, callback, Optional.ofNullable(dog));
+	private ShepherdSync buildSync(Optional<Dog> dog, Optional<Monitoring> monitoring) {
+		ShepherdSync shepherd = new ShepherdSync<T>(keyExtractor, rules, ruleExecutor, callback, dog, monitoring);
 		return shepherd;
 	}
 
 	public ShepherdASync build() {
-		ShepherdASync shepherd = new ShepherdASync<T>(thread, keyExtractor, rules, ruleExecutor, callback, Optional.empty());
+		ShepherdASync shepherd = new ShepherdASync<T>(thread, keyExtractor, rules, ruleExecutor, callback, Optional.empty(), Optional.empty());
 		return shepherd;
 	}
 
-	private ShepherdASync build(Dog dog) {
-		ShepherdASync shepherd = new ShepherdASync<T>(thread, keyExtractor, rules, ruleExecutor, callback, Optional.ofNullable(dog));
+	private ShepherdASync build(Optional<Dog> dog, Optional<Monitoring> monitoring) {
+
+		ShepherdASync shepherd = new ShepherdASync<T>(thread, keyExtractor, rules, ruleExecutor, callback, dog, monitoring);
 		return shepherd;
 	}
 
 	public static class DogBuilder<T> {
 
 		private ShepherdBuilder shepherdBuilder;
+		private MonitoringBuilder monitoringBuilder;
 		private List<Rule<T>> rules;
 		private Duration ttl;
 		private RuleExecutor ruleExecutor = new IndependentExecutor();
 
 
-		public DogBuilder(ShepherdBuilder shepherdBuilder, Duration ttl, List<Rule<T>> rulesTimeout) {
+		public DogBuilder(ShepherdBuilder shepherdBuilder, MonitoringBuilder monitoringBuilder, Duration ttl, List<Rule<T>> rulesTimeout) {
 			this.shepherdBuilder = shepherdBuilder;
+			this.monitoringBuilder = monitoringBuilder;
 
 			if (rulesTimeout == null) {
 				throw new NullPointerException("Rules applied on timeout can not be null. Hint: if you don't need them, don't use the Dog");
@@ -117,24 +146,49 @@ public class ShepherdBuilder<T> {
 			return this;
 		}
 
+		private Dog buildDog() {
+			return new Dog(rules, ttl, ruleExecutor);
+		}
+
+
+		public MonitoringBuilder withMonitoring(StatsListener statsListener, Level level) {
+			this.monitoringBuilder = new MonitoringBuilder(shepherdBuilder, this, statsListener, level);
+			return this.monitoringBuilder;
+		}
+
+		public MonitoringBuilder withMonitoring(StatsListener statsListener) {
+			this.monitoringBuilder = new MonitoringBuilder(shepherdBuilder, this, statsListener, Level.LOW);
+			return this.monitoringBuilder;
+		}
+
 		public ShepherdASync build() {
-			return this.shepherdBuilder.build(new Dog(rules, ttl, ruleExecutor));
+			if (monitoringBuilder == null) {
+				return this.shepherdBuilder.build(Optional.of(new Dog(rules, ttl, ruleExecutor)), Optional.empty());
+			}
+			else {
+				return this.shepherdBuilder.build(Optional.of(new Dog(rules, ttl, ruleExecutor)), Optional.of(monitoringBuilder.buildMonitoring()));
+			}
 		}
 
 		public ShepherdSync buildSync() {
-			return this.shepherdBuilder.buildSync(new Dog(rules, ttl, ruleExecutor));
+			if (monitoringBuilder == null) {
+				return this.shepherdBuilder.buildSync(Optional.of(new Dog(rules, ttl, ruleExecutor)), Optional.empty());
+			}
+			else {
+				return this.shepherdBuilder.buildSync(Optional.of(new Dog(rules, ttl, ruleExecutor)), Optional.of(monitoringBuilder.buildMonitoring()));
+			}
 		}
 	}
 
 	static class Dog<T> {
 		private List<Rule<T>> rulesTimeout;
-		private Duration ttl;
+		private Duration every;
 		private RuleExecutor ruleExecutor;
 
-		public Dog(List<Rule<T>> rulesTimeout, Duration ttl, RuleExecutor ruleExecutor) {
+		public Dog(List<Rule<T>> rulesTimeout, Duration every, RuleExecutor ruleExecutor) {
 			this.ruleExecutor = ruleExecutor;
 			this.rulesTimeout = rulesTimeout;
-			this.ttl = ttl;
+			this.every = every;
 		}
 
 		public List<Rule<T>> getRulesTimeout() {
@@ -142,11 +196,111 @@ public class ShepherdBuilder<T> {
 		}
 
 		public Duration getTtl() {
-			return ttl;
+			return every;
 		}
 
 		public RuleExecutor getRuleExecutor() {
 			return ruleExecutor;
+		}
+	}
+
+	public static class MonitoringBuilder {
+
+		private ShepherdBuilder shepherdBuilder;
+		private DogBuilder dogBuilder;
+		private List<StatsListener> statsListeners;
+		private Duration every = Duration.ofMinutes(1l);
+		private Level level;
+		private boolean enabled = true;
+
+		public MonitoringBuilder(ShepherdBuilder shepherdBuilder, DogBuilder dogBuilder, StatsListener statsListener, Level level) {
+			this.shepherdBuilder = shepherdBuilder;
+			this.dogBuilder = dogBuilder;
+			this.statsListeners = new ArrayList<>(1);
+			this.statsListeners.add(statsListener);
+			this.level = level;
+		}
+
+		public MonitoringBuilder every(Duration every) {
+			this.every = every;
+			return this;
+		}
+
+		public MonitoringBuilder addListener(StatsListener statsListener) {
+			this.statsListeners.add(statsListener);
+			return this;
+		}
+
+		public MonitoringBuilder addListener(List<StatsListener> statsListeners) {
+			this.statsListeners.addAll(statsListeners);
+			return this;
+		}
+
+		public MonitoringBuilder level(Level level) {
+			this.level = level;
+			return this;
+		}
+
+		public MonitoringBuilder enabled(boolean enabled) {
+			this.enabled = enabled;
+			return this;
+		}
+
+		public DogBuilder withDog(Duration ttl, List<Rule> rules) {
+			this.dogBuilder = new DogBuilder(shepherdBuilder, this, ttl, rules);
+			return this.dogBuilder;
+		}
+
+		private Monitoring buildMonitoring() {
+			return new Monitoring(statsListeners, every, level, enabled);
+		}
+
+		public ShepherdASync build() {
+			if (dogBuilder == null) {
+				return this.shepherdBuilder.build(Optional.empty(), Optional.of(new Monitoring(statsListeners, every, level, enabled)));
+			}
+			else {
+				return this.shepherdBuilder.build(Optional.of(dogBuilder.buildDog()), Optional.of(new Monitoring(statsListeners, every, level, enabled)));
+			}
+		}
+
+		public ShepherdSync buildSync() {
+			if (dogBuilder == null) {
+				return this.shepherdBuilder.buildSync(Optional.empty(), Optional.of(new Monitoring(statsListeners, every, level, enabled)));
+			}
+			else {
+				return this.shepherdBuilder.buildSync(Optional.of(dogBuilder.buildDog()), Optional.of(new Monitoring(statsListeners, every, level, enabled)));
+			}
+		}
+	}
+
+	static class Monitoring {
+		private boolean enabled = true;
+		private List<StatsListener> statsListeners;
+		private Duration every;
+		private Level level;
+
+		public Monitoring(List<StatsListener> statsListeners, Duration every, Level level, boolean enabled) {
+			this.statsListeners = statsListeners;
+			this.every = every;
+			this.level = level;
+			this.enabled = enabled;
+		}
+
+		public List<StatsListener> getStatsListeners() {
+			return statsListeners;
+		}
+
+		public Duration getEvery() {
+			return every;
+		}
+
+		public Level getLevel() {
+			return level;
+		}
+
+		public boolean isEnabled() {
+			return enabled;
 		}
 	}
 }

@@ -5,6 +5,10 @@ import cat.altimiras.shepherd.Element;
 import cat.altimiras.shepherd.QueueConsumer;
 import cat.altimiras.shepherd.Rule;
 import cat.altimiras.shepherd.RuleExecutor;
+import cat.altimiras.shepherd.monitoring.Level;
+import cat.altimiras.shepherd.monitoring.MapExtractor;
+import cat.altimiras.shepherd.monitoring.Stats;
+import cat.altimiras.shepherd.monitoring.metric.Metric;
 
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +47,23 @@ public class BasicConsumer<T> extends QueueConsumer<T> {
 
 	@Override
 	protected void remove(Object key) {
-		storage.remove(key);
+		storageLock.lock();
+		try {
+			storage.remove(key);
+		}
+		finally {
+			storageLock.unlock();
+		}
+	}
+
+	@Override
+	protected Map<Stats, Metric> getStats(Level level) {
+		storageLock.lock();
+		try {
+			return MapExtractor.extract(storage, level);
+		}
+		finally {
+			storageLock.unlock();
+		}
 	}
 }
