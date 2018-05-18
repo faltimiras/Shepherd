@@ -10,13 +10,14 @@ import java.util.Map;
 
 public class LogStatsListener implements StatsListener {
 
-	protected static Logger log = LoggerFactory.getLogger(LogStatsListener.class);
+	protected Logger log;
 
 	public LogStatsListener() {
+		this.log = LoggerFactory.getLogger(LogStatsListener.class);
 	}
 
-	public LogStatsListener(Logger log) {
-		LogStatsListener.log = log;
+	public LogStatsListener(Class loggerClass) {
+		this.log = LoggerFactory.getLogger(loggerClass);
 	}
 
 	@Override
