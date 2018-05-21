@@ -74,8 +74,30 @@ Shepherd shepherd = Shepherd.create().basic(1, new SimpleKeyExtractor(), Optiona
 
 Rule executor is responsible to apply the rules to an element. By default Rules are executed independently (IndependentExecutor) but you can also chain them (second rule receives toKeep values from previous rule) or you can implement your own.
 To set up the executor, just: .setRuleExecutor(RuleExecutor ruleExecutor)
- 
 
+**Monitoring**
+
+System can be monitored. An extra thread runs every X seconds to keep some system metrics.
+There are 2 levels of monitoring: LOW and DEEP. DEEP provide more metrics but also can block system for more time.
+
+Metrics available are:
+
+LOW
+* ELAPSED_TIME_COLLECTING_ms - Milliseconds gathering stats. Time system was block, not exactly. 
+* NUM_ELEMENTS - Number of groups pending to group
+
+DEEP (all LOW metrics plus)
+* NUM_ELEMENTS_TOTAL - Total number of objects pending to groups
+* AVG_ELEMENTS_GROUP - AVG elements inside groups  NUM_ELEMENTS_TOTAL/NUM_ELEMENTS
+* MAX_ELEMENT_GROUP - Number of elements of the group with max number of elements
+* MIN_ELEMENT_GROUP - Number of elements of the group with max number of elements
+* OLDEST_ELEMENT - Birth time of the oldest element 
+* AGE_OLDEST_ELEMENT_s - Age in seconds of the oldest element
+
+ ```
+.withMonitoring(new LogStatsListener()).level(Level.LOW)
+ ```
+ 
 ## Built With
 
 * [Maven](https://maven.apache.org/) - Dependency Management
