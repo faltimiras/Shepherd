@@ -15,7 +15,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 
-@Ignore
+//@Ignore
 public class IntegrationTest {
 
 	//THIS IS NOT UNIT TEST. KIND OF INTEGRATION TEST!
@@ -33,7 +33,7 @@ public class IntegrationTest {
 		shepherd.add(2);
 		shepherd.add(2);
 		shepherd.add(1);
-		Thread.sleep(100);
+		Thread.sleep(200);
 
 		assertEquals(3,resultsPool.size());
 		assertEquals(1,  resultsPool.get(1).get(0).get(0).intValue());
@@ -56,7 +56,7 @@ public class IntegrationTest {
 		shepherd.add(2);
 		shepherd.add(3);
 		shepherd.add(3);
-		Thread.sleep(100);
+		Thread.sleep(200);
 
 		assertEquals(3,resultsPool.size());
 		List<List> result = resultsPool.get();
@@ -88,6 +88,7 @@ public class IntegrationTest {
 		shepherd.add(3);
 		shepherd.add(2);
 		shepherd.add(2);
+		Thread.sleep(200);
 
 		assertEquals(4,resultsPool.size());
 		List<List> result = resultsPool.get();
@@ -134,7 +135,7 @@ public class IntegrationTest {
 		shepherd.add(1);
 		shepherd.add(1);
 		shepherd.add(1);
-		Thread.sleep(200);
+		Thread.sleep(300);
 
 		List<Integer> result = (List<Integer>) resultsPool.get().get(0);
 		assertEquals(3, result.size());
@@ -154,7 +155,7 @@ public class IntegrationTest {
 
 		shepherd.add(2);
 		shepherd.add(1);
-		Thread.sleep(200);
+		Thread.sleep(300);
 
 		List<List<Integer>> result2 = resultsPool.get();
 		assertEquals(2, result2.size());

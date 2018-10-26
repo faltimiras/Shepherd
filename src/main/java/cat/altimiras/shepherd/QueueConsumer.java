@@ -39,6 +39,8 @@ public abstract class QueueConsumer<T> implements Runnable {
 			if (rules != null) {
 				RuleResult ruleResult = ruleExecutor.execute(element, rules);
 				postProcess(t, ruleResult);
+
+				RuleResultPool.release(ruleResult);
 			}
 			else {
 				put(element);

@@ -8,10 +8,30 @@ public class RuleResult<T> {
 	protected List<T> group;
 	protected Element<T> toKeep;
 
+	RuleResult() {
+	}
 
-	private RuleResult(boolean canGroup, List<T> group, Element<T> toKeep) {
+	private void build(boolean canGroup, List<T> group, Element<T> toKeep) {
 		this.canGroup = canGroup;
 		this.group = group;
+		this.toKeep = toKeep;
+	}
+
+	void reset() {
+		this.canGroup = false;
+		this.group = null;
+		toKeep = null;
+	}
+
+	void setCanGroup(boolean canGroup) {
+		this.canGroup = canGroup;
+	}
+
+	void setGroup(List<T> group) {
+		this.group = group;
+	}
+
+	void setToKeep(Element<T> toKeep) {
 		this.toKeep = toKeep;
 	}
 
@@ -28,31 +48,49 @@ public class RuleResult<T> {
 	}
 
 	public static RuleResult canGroup(List group, Element toKeep) {
-		return new RuleResult(true, group, toKeep);
+
+		RuleResult ruleResult = RuleResultPool.borrow();
+		ruleResult.build(true, group, toKeep);
+		return ruleResult;
 	}
 
 	public static RuleResult canGroup(List group) {
-		return new RuleResult(true, group, null);
+		RuleResult ruleResult = RuleResultPool.borrow();
+		ruleResult.build(true, group, null);
+		return ruleResult;
 	}
 
 	public static RuleResult cantGroup(Element toKeep) {
-		return new RuleResult(false, null, toKeep);
+
+		RuleResult ruleResult = RuleResultPool.borrow();
+		ruleResult.build(false, null, toKeep);
+		return ruleResult;
 	}
 
 	public static RuleResult cantGroup() {
-		return new RuleResult(false, null, null);
+
+		RuleResult ruleResult = RuleResultPool.borrow();
+		ruleResult.build(false, null, null);
+		return ruleResult;
 	}
 
 	public static RuleResult canNotGroup(Element toKeep) {
+		RuleResult ruleResult = RuleResultPool.borrow();
+
 		if (toKeep == null || toKeep.getValues() == null || toKeep.getValues().isEmpty()) {
-			return new RuleResult(false, null, null);
+			ruleResult.build(false, null, null);
 		}
-		return new RuleResult(false, null, toKeep);
+		else {
+			ruleResult.build(false, null, toKeep);
+		}
+		return ruleResult;
+
 	}
 
 	public static RuleResult canNotGroup() {
-		return new RuleResult(false, null, null);
+
+		RuleResult ruleResult = RuleResultPool.borrow();
+		ruleResult.build(false, null, null);
+		return ruleResult;
 	}
-
-
 }
