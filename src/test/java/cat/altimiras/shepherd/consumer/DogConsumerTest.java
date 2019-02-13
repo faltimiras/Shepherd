@@ -110,7 +110,7 @@ public class DogConsumerTest {
 		Rule rule = mock(Rule.class);
 
 		DogConsumer dogConsumer = new DogConsumer(null, ruleExecutor, new LinkedBlockingDeque<>(), scheduler, Arrays.asList(rule), null, Clock.systemUTC(), ruleExecutorTimeout, callback);
-		dogConsumer.checkTimeouts();
+		dogConsumer.checkTimeouts(false);
 
 		verify(callback, never()).accept(any());
 		verify(ruleExecutor, never()).execute(any(Element.class), any());
@@ -131,7 +131,7 @@ public class DogConsumerTest {
 
 		DogConsumer dogConsumer = new DogConsumer(null, ruleExecutor, new LinkedBlockingDeque(), scheduler, rules, Duration.ofMillis(10), clock, ruleExecutorTimeout, callback);
 		dogConsumer.put(element);
-		dogConsumer.checkTimeouts();
+		dogConsumer.checkTimeouts(false);
 
 		verify(callback, times(1)).accept(values);
 		verify(scheduler, times(1)).justExecuted();
@@ -151,7 +151,7 @@ public class DogConsumerTest {
 
 		DogConsumer dogConsumer = new DogConsumer(null, ruleExecutor, new LinkedBlockingDeque(), scheduler, rules, Duration.ofMillis(10), clock, ruleExecutorTimeout, callback);
 		dogConsumer.put(element);
-		dogConsumer.checkTimeouts();
+		dogConsumer.checkTimeouts(false);
 
 		verify(callback, times(1)).accept(values);
 		verify(scheduler, times(1)).justExecuted();
@@ -171,7 +171,7 @@ public class DogConsumerTest {
 
 		DogConsumer dogConsumer = new DogConsumer(null, ruleExecutor, new LinkedBlockingDeque(), scheduler, Arrays.asList(rule), Duration.ofMillis(10), clock, ruleExecutorTimeout, callback);
 		dogConsumer.put(element);
-		dogConsumer.checkTimeouts();
+		dogConsumer.checkTimeouts(false);
 
 		verify(callback, never()).accept(values);
 		verify(scheduler, times(1)).justExecuted();
@@ -191,7 +191,7 @@ public class DogConsumerTest {
 
 		DogConsumer dogConsumer = new DogConsumer(null, ruleExecutor, new LinkedBlockingDeque(), scheduler, rules, Duration.ofMillis(10), clock, ruleExecutorTimeout, callback);
 		dogConsumer.put(element);
-		dogConsumer.checkTimeouts();
+		dogConsumer.checkTimeouts(false);
 
 		verify(callback, never()).accept(values);
 		verify(ruleExecutor, never()).execute(any(Element.class), any());
@@ -215,7 +215,7 @@ public class DogConsumerTest {
 		DogConsumer dogConsumer = new DogConsumer(null, ruleExecutor, new LinkedBlockingDeque(), scheduler, rules, Duration.ofMillis(10), clock, ruleExecutorTimeout, callback);
 		dogConsumer.put(element);
 		dogConsumer.put(element2);
-		dogConsumer.checkTimeouts();
+		dogConsumer.checkTimeouts(false);
 
 		verify(callback, times(1)).accept(any());
 		verify(ruleExecutor, never()).execute(any(Element.class), any());
@@ -242,7 +242,7 @@ public class DogConsumerTest {
 		DogConsumer dogConsumer = new DogConsumer(null, ruleExecutor, new LinkedBlockingDeque(), scheduler, rules, Duration.ofMillis(10), clock, ruleExecutorTimeout, callback);
 		dogConsumer.put(element1);
 		dogConsumer.put(element2);
-		dogConsumer.checkTimeouts();
+		dogConsumer.checkTimeouts(false);
 
 		verify(callback, never()).accept(any());
 		verify(rule, never()).canGroup(any());

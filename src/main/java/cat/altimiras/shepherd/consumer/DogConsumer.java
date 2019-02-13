@@ -52,13 +52,13 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 					long millis = this.scheduler.calculateWaitingTime();
 
 					if (millis <= 0) {
-						checkTimeouts();
+						checkTimeouts(false);
 					}
 					else {
 						log.info("Waiting for next element. Max ms: {}", millis);
 						Element<T> element = queue.poll(millis, TimeUnit.MILLISECONDS);
 						if (element == null) {
-							checkTimeouts();
+							checkTimeouts(false);
 						}
 						else {
 							consume(element);
@@ -104,7 +104,7 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 		}
 	}
 
-	public void checkTimeouts() {
+	public void checkTimeouts(boolean force) {
 
 		storageLock.lock();
 		try {
@@ -120,7 +120,7 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 				Element<T> element = it.next();
 
 				Duration diff = Duration.between(element.getCreationTs(), now);
-				if (diff.compareTo(ttl) > 0) {
+				if (force || diff.compareTo(ttl) > 0) {
 					RuleResult ruleResult = ruleExecutorTimeout.execute(element, rulesTimeout);
 					if (ruleResult.getToKeep() != null) {
 						storage.put(ruleResult.getToKeep().getKey(), ruleResult.getToKeep());

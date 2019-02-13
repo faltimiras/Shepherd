@@ -1,5 +1,6 @@
 package cat.altimiras.shepherd;
 
+import cat.altimiras.shepherd.consumer.DogConsumer;
 import cat.altimiras.shepherd.monitoring.Level;
 import cat.altimiras.shepherd.monitoring.Stats;
 import cat.altimiras.shepherd.monitoring.StatsListener;
@@ -31,13 +32,17 @@ abstract class ShepherdBase<T> implements Shepherd<T> {
 
 	private final List<StatsListener> statsListeners;
 
+	private final boolean hasDog;
+
 	protected final List<QueueConsumer> consumers;
 
-	public ShepherdBase(KeyExtractor keyExtractor, Callback<T> callback, RuleExecutor<T> ruleExecutor, int numConsumers, Optional<ShepherdBuilder.Monitoring> monitoring) {
+
+	public ShepherdBase(KeyExtractor keyExtractor, Callback<T> callback, RuleExecutor<T> ruleExecutor, int numConsumers, boolean hasDog, Optional<ShepherdBuilder.Monitoring> monitoring) {
 		this.keyExtractor = keyExtractor;
 		this.callback = callback;
 		this.ruleExecutor = ruleExecutor;
 		this.consumers = new ArrayList<>(numConsumers);
+		this.hasDog = hasDog;
 
 		if (monitoring.isPresent()) {
 			this.statsListeners = monitoring.get().getStatsListeners();
@@ -74,4 +79,16 @@ abstract class ShepherdBase<T> implements Shepherd<T> {
 		}
 	}
 
+	public void forceTimeout() {
+		forceTimeout(false);
+	}
+
+	public void forceTimeout(boolean force) {
+		if (hasDog) {
+			consumers.stream().forEach((c -> ((DogConsumer)c).checkTimeouts(force)));
+		}
+		else {
+			throw new UnsupportedOperationException("Can not force timeout if shepherd has not a dog");
+		}
+	}
 }

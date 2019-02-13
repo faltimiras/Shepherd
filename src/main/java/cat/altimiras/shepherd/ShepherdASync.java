@@ -26,13 +26,16 @@ public class ShepherdASync<T> extends ShepherdBase<T> {
 
 	private final int threads;
 
+	private final boolean hasDog;
+
 	ShepherdASync(int thread, KeyExtractor keyExtractor, List<Rule<T>> rules, RuleExecutor<T> ruleExecutor, Callback<T> callback, Optional<ShepherdBuilder.Dog> dog, Optional<ShepherdBuilder.Monitoring> monitoring) {
 
-		super(keyExtractor, callback, ruleExecutor, thread, monitoring);
+		super(keyExtractor, callback, ruleExecutor, thread, dog.isPresent(), monitoring);
 
 		this.threads = thread;
 		this.queues = new LinkedBlockingQueue[thread];
 		this.pool = Executors.newFixedThreadPool(thread);
+		this.hasDog = dog.isPresent();
 
 		initializeQueues();
 		startConsumers(rules, dog);
@@ -99,6 +102,16 @@ public class ShepherdASync<T> extends ShepherdBase<T> {
 
 	public void stop() {
 		pool.shutdown();
+	}
+
+	public boolean areQueuesEmpty() {
+
+		for(int i = 0; i< queues.length; i++){
+			if (!queues[i].isEmpty()){
+				return false;
+			}
+		}
+		return true;
 	}
 
 }

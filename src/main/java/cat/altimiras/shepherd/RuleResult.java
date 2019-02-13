@@ -94,3 +94,4 @@ public class RuleResult<T> {
 		return ruleResult;
 	}
 }
+

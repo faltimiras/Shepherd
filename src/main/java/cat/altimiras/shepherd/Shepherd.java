@@ -10,4 +10,8 @@ public interface Shepherd<T> {
 
 	boolean add(T t);
 
+	void forceTimeout();
+
+	void forceTimeout(boolean force);
+
 }

@@ -8,7 +8,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 public class ResultsPool<T> implements Callback<T> {
 
-	final private LinkedBlockingDeque<List<T>> results;
+	final protected LinkedBlockingDeque<List<T>> results;
 
 	public ResultsPool(int maxSize) {
 		results = new LinkedBlockingDeque<List<T>>(maxSize);
