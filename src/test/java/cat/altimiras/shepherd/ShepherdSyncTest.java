@@ -45,10 +45,4 @@ public class ShepherdSyncTest {
 		ShepherdSync shepherd = ShepherdBuilder.create().basic(keyExtractor, Optional.empty(), new ResultsPool()).buildSync();
 		assertTrue(shepherd.add(o));
 	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void syncForce() throws Exception{
-		ShepherdSync shepherd = ShepherdBuilder.create().basic(mock(KeyExtractor.class), Optional.empty(), new ResultsPool()).buildSync();
-		shepherd.forceTimeout();
-	}
 }

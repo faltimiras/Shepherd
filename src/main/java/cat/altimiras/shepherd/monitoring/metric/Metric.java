@@ -1,24 +1,8 @@
 package cat.altimiras.shepherd.monitoring.metric;
 
-public class Metric {
+public interface Metric<T> {
 
-	protected long value;
+	Metric<T> merge(Metric<T> otherMetric);
 
-	public Metric(long value) {
-		this.value = value;
-	}
-
-	public long getValue() {
-		return value;
-	}
-
-	long add(long toAdd) {
-		this.value += toAdd;
-		return this.value;
-	}
-
-	public String format() {
-		return String.valueOf(value);
-	}
-
+	T get();
 }

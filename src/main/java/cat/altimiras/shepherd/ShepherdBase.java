@@ -1,11 +1,11 @@
 package cat.altimiras.shepherd;
 
 import cat.altimiras.shepherd.consumer.DogConsumer;
+import cat.altimiras.shepherd.monitoring.debug.ElementDebugSerializer;
 import cat.altimiras.shepherd.monitoring.Level;
 import cat.altimiras.shepherd.monitoring.Stats;
 import cat.altimiras.shepherd.monitoring.StatsListener;
 import cat.altimiras.shepherd.monitoring.metric.Metric;
-import cat.altimiras.shepherd.monitoring.metric.MetricMerger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +48,7 @@ abstract class ShepherdBase<T> implements Shepherd<T> {
 			this.statsListeners = monitoring.get().getStatsListeners();
 			this.statPool = Executors.newScheduledThreadPool(1);
 			this.statPool.scheduleWithFixedDelay(
-					() -> collectStatsConsumers(monitoring.get().getLevel()),
+					() -> collectStatsConsumers(monitoring.get().getLevel(), monitoring.get().getElementDebugSerializer()),
 					monitoring.get().getEvery().toMillis(),
 					monitoring.get().getEvery().toMillis(),
 					TimeUnit.MILLISECONDS
@@ -60,18 +60,19 @@ abstract class ShepherdBase<T> implements Shepherd<T> {
 		}
 	}
 
-	private void collectStatsConsumers(Level level) {
+	private void collectStatsConsumers(Level level, ElementDebugSerializer debugSerializer) {
 		try {
 			log.debug("Collection stats loop just started");
-			Map<Stats, Metric> aggregated = new HashMap<>(Stats.values().length);
+			List<Map<Stats, Metric>> metrics = new ArrayList<>(consumers.size());
 
 			for (QueueConsumer consumer : consumers) {
-				Map<Stats, Metric> statsConsumer = consumer.getStats(level);
-				MetricMerger.merge(aggregated, statsConsumer);
+				metrics.add(consumer.getStats(level, debugSerializer));
 			}
 
-			for (StatsListener listener : statsListeners) {
-				listener.push(aggregated);
+			if (!metrics.isEmpty()) {
+				for (StatsListener listener : statsListeners) {
+					listener.push(metrics);
+				}
 			}
 		}
 		catch (Exception e) {
@@ -88,7 +89,7 @@ abstract class ShepherdBase<T> implements Shepherd<T> {
 			consumers.stream().forEach((c -> ((DogConsumer)c).checkTimeouts(force)));
 		}
 		else {
-			throw new UnsupportedOperationException("Can not force timeout if shepherd has not a dog");
+			log.info("Ignoring force timeouts. As no dog is configured");
 		}
 	}
 }

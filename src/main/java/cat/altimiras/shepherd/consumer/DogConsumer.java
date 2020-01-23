@@ -6,26 +6,18 @@ import cat.altimiras.shepherd.QueueConsumer;
 import cat.altimiras.shepherd.Rule;
 import cat.altimiras.shepherd.RuleExecutor;
 import cat.altimiras.shepherd.RuleResult;
-import cat.altimiras.shepherd.monitoring.Level;
-import cat.altimiras.shepherd.monitoring.MapExtractor;
-import cat.altimiras.shepherd.monitoring.Stats;
-import cat.altimiras.shepherd.monitoring.metric.Metric;
 import cat.altimiras.shepherd.scheduler.Scheduler;
+import cat.altimiras.shepherd.storage.LinkedMapStorage;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class DogConsumer<T> extends QueueConsumer<T> {
-
-	private Map<Object, Element<T>> storage = new LinkedHashMap<>();
 
 	private final Scheduler scheduler;
 	private final List<Rule<T>> rulesTimeout;
@@ -35,7 +27,7 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 
 
 	public DogConsumer(List<Rule<T>> rules, RuleExecutor<T> ruleExecutor, BlockingQueue<Element<T>> queue, Scheduler scheduler, List<Rule<T>> rulesTimeout, Duration ttl, Clock clock, RuleExecutor<T> ruleTimeoutExecutor, Callback<T> callback) {
-		super(rules, queue, ruleExecutor, callback);
+		super(new LinkedMapStorage(), rules, queue, ruleExecutor, callback);
 		this.scheduler = scheduler;
 		this.rulesTimeout = rulesTimeout;
 		this.ttl = ttl;
@@ -53,21 +45,18 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 
 					if (millis <= 0) {
 						checkTimeouts(false);
-					}
-					else {
+					} else {
 						log.info("Waiting for next element. Max ms: {}", millis);
 						Element<T> element = queue.poll(millis, TimeUnit.MILLISECONDS);
 						if (element == null) {
 							checkTimeouts(false);
-						}
-						else {
+						} else {
 							consume(element);
 						}
 					}
 				}
 			}
-		}
-		catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 			//nothing to do
 		}
 	}
@@ -87,19 +76,7 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 		storageLock.lock();
 		try {
 			storage.remove(key);
-		}
-		finally {
-			storageLock.unlock();
-		}
-	}
-
-	@Override
-	protected Map<Stats, Metric> getStats(Level level) {
-		storageLock.lock();
-		try {
-			return MapExtractor.extract(storage, level);
-		}
-		finally {
+		} finally {
 			storageLock.unlock();
 		}
 	}
@@ -111,7 +88,7 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 
 			log.debug("Dog gonna run for timeouts");
 
-			Iterator<Element<T>> it = storage.values().iterator();
+			Iterator<Element<T>> it = storage.values();
 
 			Instant now = clock.instant();
 
@@ -124,16 +101,14 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 					RuleResult ruleResult = ruleExecutorTimeout.execute(element, rulesTimeout);
 					if (ruleResult.getToKeep() != null) {
 						storage.put(ruleResult.getToKeep().getKey(), ruleResult.getToKeep());
-					}
-					else {
+					} else {
 						it.remove();
 					}
 
 					if (ruleResult.canGroup()) {
 						callback.accept(ruleResult.getGroup());
 					}
-				}
-				else {
+				} else {
 					stop = true; //elements are ordered by creation time. Make no sense to continue if one is not older, next one wont be
 				}
 			}
@@ -141,8 +116,7 @@ public class DogConsumer<T> extends QueueConsumer<T> {
 			if (scheduler != null) {
 				scheduler.justExecuted();
 			}
-		}
-		finally {
+		} finally {
 			storageLock.unlock();
 		}
 	}

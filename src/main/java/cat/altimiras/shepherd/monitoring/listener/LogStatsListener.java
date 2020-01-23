@@ -6,6 +6,7 @@ import cat.altimiras.shepherd.monitoring.metric.Metric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 
 public class LogStatsListener implements StatsListener {
@@ -21,14 +22,16 @@ public class LogStatsListener implements StatsListener {
 	}
 
 	@Override
-	public void push(Map<Stats, Metric> stats) {
+	public void push(List<Map<Stats, Metric>> stats) {
 
 		StringBuffer buffer = new StringBuffer();
-		for (Map.Entry<Stats, Metric> e : stats.entrySet()) {
-			buffer.append(e.getKey().name());
-			buffer.append(":");
-			buffer.append(e.getValue().format());
-			buffer.append(System.lineSeparator());
+		for (Map<Stats, Metric> partitionMetrics : stats) {
+			for (Map.Entry<Stats, Metric> e : partitionMetrics.entrySet()) {
+				buffer.append(e.getKey().name());
+				buffer.append(":");
+				buffer.append(e.getValue());
+				buffer.append(System.lineSeparator());
+			}
 		}
 		log.info("Shepherd stats: {}", buffer);
 	}

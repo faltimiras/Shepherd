@@ -26,8 +26,6 @@ public class ShepherdASync<T> extends ShepherdBase<T> {
 
 	private final int threads;
 
-	private final boolean hasDog;
-
 	ShepherdASync(int thread, KeyExtractor keyExtractor, List<Rule<T>> rules, RuleExecutor<T> ruleExecutor, Callback<T> callback, Optional<ShepherdBuilder.Dog> dog, Optional<ShepherdBuilder.Monitoring> monitoring) {
 
 		super(keyExtractor, callback, ruleExecutor, thread, dog.isPresent(), monitoring);
@@ -35,7 +33,6 @@ public class ShepherdASync<T> extends ShepherdBase<T> {
 		this.threads = thread;
 		this.queues = new LinkedBlockingQueue[thread];
 		this.pool = Executors.newFixedThreadPool(thread);
-		this.hasDog = dog.isPresent();
 
 		initializeQueues();
 		startConsumers(rules, dog);
@@ -65,6 +62,7 @@ public class ShepherdASync<T> extends ShepherdBase<T> {
 		}
 	}
 
+	@Override
 	public boolean add(T t, Instant timestmap) {
 		try {
 			Object key = keyExtractor.key(t);
@@ -92,15 +90,21 @@ public class ShepherdASync<T> extends ShepherdBase<T> {
 		}
 	}
 
-	public boolean add(T t, Long timestmap) {
-		return add(t, Instant.ofEpochMilli(timestmap));
+	@Override
+	public boolean add(T t, Long timestamp) {
+		return add(t, Instant.ofEpochMilli(timestamp));
 	}
 
+	@Override
 	public boolean add(T t) {
 		return add(t, (Instant) null);
 	}
 
-	public void stop() {
+	@Override
+	public void stop(boolean forceTimeout) {
+		if (forceTimeout){
+			this.forceTimeout(true);
+		}
 		pool.shutdown();
 	}
 

@@ -18,7 +18,7 @@ import static org.junit.Assert.assertEquals;
 //@Ignore
 public class IntegrationTest {
 
-	//THIS IS NOT UNIT TEST. KIND OF INTEGRATION TEST!
+	//THIS IS NOT UNIT TEST.
 
 	@Test
 	public void noDuplicates() throws Exception{

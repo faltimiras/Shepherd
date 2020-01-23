@@ -3,6 +3,8 @@ package cat.altimiras.shepherd;
 import cat.altimiras.shepherd.executor.IndependentExecutor;
 import cat.altimiras.shepherd.monitoring.Level;
 import cat.altimiras.shepherd.monitoring.StatsListener;
+import cat.altimiras.shepherd.monitoring.debug.ElementDebugSerializer;
+import cat.altimiras.shepherd.monitoring.debug.StringElementDebugSerializer;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -86,7 +88,7 @@ public class ShepherdBuilder<T> {
 	}
 
 	public MonitoringBuilder withMonitoring(StatsListener statsListener) {
-		this.monitoringBuilder = new MonitoringBuilder(this, this.dogBuilder, statsListener, Level.LOW);
+		this.monitoringBuilder = new MonitoringBuilder(this, this.dogBuilder, statsListener, Level.INFO);
 		return this.monitoringBuilder;
 	}
 
@@ -157,15 +159,14 @@ public class ShepherdBuilder<T> {
 		}
 
 		public MonitoringBuilder withMonitoring(StatsListener statsListener) {
-			this.monitoringBuilder = new MonitoringBuilder(shepherdBuilder, this, statsListener, Level.LOW);
+			this.monitoringBuilder = new MonitoringBuilder(shepherdBuilder, this, statsListener, Level.INFO);
 			return this.monitoringBuilder;
 		}
 
 		public ShepherdASync build() {
 			if (monitoringBuilder == null) {
 				return this.shepherdBuilder.build(Optional.of(new Dog(rules, ttl, ruleExecutor)), Optional.empty());
-			}
-			else {
+			} else {
 				return this.shepherdBuilder.build(Optional.of(new Dog(rules, ttl, ruleExecutor)), Optional.of(monitoringBuilder.buildMonitoring()));
 			}
 		}
@@ -173,8 +174,7 @@ public class ShepherdBuilder<T> {
 		public ShepherdSync buildSync() {
 			if (monitoringBuilder == null) {
 				return this.shepherdBuilder.buildSync(Optional.of(new Dog(rules, ttl, ruleExecutor)), Optional.empty());
-			}
-			else {
+			} else {
 				return this.shepherdBuilder.buildSync(Optional.of(new Dog(rules, ttl, ruleExecutor)), Optional.of(monitoringBuilder.buildMonitoring()));
 			}
 		}
@@ -209,6 +209,7 @@ public class ShepherdBuilder<T> {
 		private ShepherdBuilder shepherdBuilder;
 		private DogBuilder dogBuilder;
 		private List<StatsListener> statsListeners;
+		private ElementDebugSerializer elementDebugSerializer = new StringElementDebugSerializer();
 		private Duration every = Duration.ofMinutes(1l);
 		private Level level;
 		private boolean enabled = true;
@@ -236,6 +237,11 @@ public class ShepherdBuilder<T> {
 			return this;
 		}
 
+		public MonitoringBuilder addElementDebug(ElementDebugSerializer elementDebugSerializer) {
+			this.elementDebugSerializer = elementDebugSerializer;
+			return this;
+		}
+
 		public MonitoringBuilder level(Level level) {
 			this.level = level;
 			return this;
@@ -252,24 +258,22 @@ public class ShepherdBuilder<T> {
 		}
 
 		private Monitoring buildMonitoring() {
-			return new Monitoring(statsListeners, every, level, enabled);
+			return new Monitoring(statsListeners, every, level, enabled, elementDebugSerializer);
 		}
 
 		public ShepherdASync build() {
 			if (dogBuilder == null) {
-				return this.shepherdBuilder.build(Optional.empty(), Optional.of(new Monitoring(statsListeners, every, level, enabled)));
-			}
-			else {
-				return this.shepherdBuilder.build(Optional.of(dogBuilder.buildDog()), Optional.of(new Monitoring(statsListeners, every, level, enabled)));
+				return this.shepherdBuilder.build(Optional.empty(), Optional.of(new Monitoring(statsListeners, every, level, enabled, elementDebugSerializer)));
+			} else {
+				return this.shepherdBuilder.build(Optional.of(dogBuilder.buildDog()), Optional.of(new Monitoring(statsListeners, every, level, enabled, elementDebugSerializer)));
 			}
 		}
 
 		public ShepherdSync buildSync() {
 			if (dogBuilder == null) {
-				return this.shepherdBuilder.buildSync(Optional.empty(), Optional.of(new Monitoring(statsListeners, every, level, enabled)));
-			}
-			else {
-				return this.shepherdBuilder.buildSync(Optional.of(dogBuilder.buildDog()), Optional.of(new Monitoring(statsListeners, every, level, enabled)));
+				return this.shepherdBuilder.buildSync(Optional.empty(), Optional.of(new Monitoring(statsListeners, every, level, enabled, elementDebugSerializer)));
+			} else {
+				return this.shepherdBuilder.buildSync(Optional.of(dogBuilder.buildDog()), Optional.of(new Monitoring(statsListeners, every, level, enabled, elementDebugSerializer)));
 			}
 		}
 	}
@@ -277,14 +281,16 @@ public class ShepherdBuilder<T> {
 	static class Monitoring {
 		private boolean enabled = true;
 		private List<StatsListener> statsListeners;
+		private ElementDebugSerializer elementDebugSerializer;
 		private Duration every;
 		private Level level;
 
-		public Monitoring(List<StatsListener> statsListeners, Duration every, Level level, boolean enabled) {
+		public Monitoring(List<StatsListener> statsListeners, Duration every, Level level, boolean enabled, ElementDebugSerializer elementDebugSerializer) {
 			this.statsListeners = statsListeners;
 			this.every = every;
 			this.level = level;
 			this.enabled = enabled;
+			this.elementDebugSerializer = elementDebugSerializer;
 		}
 
 		public List<StatsListener> getStatsListeners() {
@@ -301,6 +307,10 @@ public class ShepherdBuilder<T> {
 
 		public boolean isEnabled() {
 			return enabled;
+		}
+
+		public ElementDebugSerializer getElementDebugSerializer() {
+			return elementDebugSerializer;
 		}
 	}
 }

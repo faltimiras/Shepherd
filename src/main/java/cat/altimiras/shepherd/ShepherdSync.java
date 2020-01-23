@@ -16,14 +16,11 @@ public class ShepherdSync<T> extends ShepherdBase<T> {
 
 	private final QueueConsumer<T> consumer;
 
-	private final boolean hasDog;
-
-
 	ShepherdSync(KeyExtractor keyExtractor, List<Rule<T>> rules, RuleExecutor<T> ruleExecutor, Callback<T> callback, Optional<ShepherdBuilder.Dog> dog, Optional<ShepherdBuilder.Monitoring> monitoring) {
 
 		super(keyExtractor, callback, ruleExecutor, 1, dog.isPresent(), monitoring);
 
-		if (hasDog = dog.isPresent()) {
+		if (dog.isPresent()) {
 			this.consumer = new DogConsumer(rules, this.ruleExecutor, null, null, dog.get().getRulesTimeout(), dog.get().getTtl(), Clock.systemUTC(), dog.get().getRuleExecutor(), this.callback);
 		}
 		else {
@@ -34,6 +31,7 @@ public class ShepherdSync<T> extends ShepherdBase<T> {
 
 	}
 
+	@Override
 	public boolean add(T t, Instant timestmap) {
 		try {
 			Object key = keyExtractor.key(t);
@@ -54,11 +52,20 @@ public class ShepherdSync<T> extends ShepherdBase<T> {
 		}
 	}
 
+	@Override
 	public boolean add(T t, Long timestmap) {
 		return add(t, Instant.ofEpochMilli(timestmap));
 	}
 
+	@Override
 	public boolean add(T t) {
 		return add(t, (Instant) null);
+	}
+
+	@Override
+	public void stop(boolean forceTimeout) {
+		if (forceTimeout){
+			this.forceTimeout(true);
+		}
 	}
 }

@@ -5,22 +5,15 @@ import cat.altimiras.shepherd.Element;
 import cat.altimiras.shepherd.QueueConsumer;
 import cat.altimiras.shepherd.Rule;
 import cat.altimiras.shepherd.RuleExecutor;
-import cat.altimiras.shepherd.monitoring.Level;
-import cat.altimiras.shepherd.monitoring.MapExtractor;
-import cat.altimiras.shepherd.monitoring.Stats;
-import cat.altimiras.shepherd.monitoring.metric.Metric;
+import cat.altimiras.shepherd.storage.MapStorage;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 public class BasicConsumer<T> extends QueueConsumer<T> {
 
-	private Map<Object, Element<T>> storage = new HashMap<>();
-
 	public BasicConsumer(List<Rule<T>> rules, BlockingQueue<Element<T>> queue, RuleExecutor<T> ruleExecutor, Callback<T> callback) {
-		super(rules, queue, ruleExecutor, callback);
+		super(new MapStorage(), rules, queue, ruleExecutor, callback);
 	}
 
 	@Override
@@ -29,8 +22,7 @@ public class BasicConsumer<T> extends QueueConsumer<T> {
 			while (true) {
 				consume(queue.take());
 			}
-		}
-		catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 			//nothing to do
 		}
 	}
@@ -50,19 +42,7 @@ public class BasicConsumer<T> extends QueueConsumer<T> {
 		storageLock.lock();
 		try {
 			storage.remove(key);
-		}
-		finally {
-			storageLock.unlock();
-		}
-	}
-
-	@Override
-	protected Map<Stats, Metric> getStats(Level level) {
-		storageLock.lock();
-		try {
-			return MapExtractor.extract(storage, level);
-		}
-		finally {
+		} finally {
 			storageLock.unlock();
 		}
 	}

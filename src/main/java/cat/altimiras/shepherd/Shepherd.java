@@ -14,4 +14,6 @@ public interface Shepherd<T> {
 
 	void forceTimeout(boolean force);
 
+	void stop(boolean forceTimeout);
+
 }
