@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class Element<T> {
 
-	private final Clock clock = Clock.systemUTC();
+	private final static Clock clock = Clock.systemUTC();
 
 	private Object key;
 	private List<T> values;
