@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface RuleExecutor<T> {
 
-	RuleResult<T> execute(final Element<T> elements, List<Rule<T>> rules);
+	RuleResult<T> execute(final Metadata metadata, final T newValue, LazyValue lazyValue, List<Rule<T>> rules);
 }

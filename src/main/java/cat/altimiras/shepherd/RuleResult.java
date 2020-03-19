@@ -1,37 +1,46 @@
 package cat.altimiras.shepherd;
 
 import java.util.List;
-
-public class RuleResult<T> {
+public class RuleResult<V> {
 
 	private boolean canGroup;
-	protected List<T> group;
-	protected Element<T> toKeep;
+	private int append; //-1: append first, 0: not append, 1 append at the end
+	private int discard; //-1: discard before, 0 : not discard, 1 discard at the end
+	protected List<V> group; //group output
+	protected List<V> toKeep; //object to keep in the values storage
 
 	RuleResult() {
 	}
 
-	private void build(boolean canGroup, List<T> group, Element<T> toKeep) {
+	private void build(boolean canGroup, int append, int discard, List<V> group, List<V> toKeep) {
 		this.canGroup = canGroup;
 		this.group = group;
 		this.toKeep = toKeep;
+		this.append = append;
+		this.discard = discard;
 	}
 
 	void reset() {
 		this.canGroup = false;
 		this.group = null;
-		toKeep = null;
+		this.toKeep = null;
+		this.append = 0;
+		this.discard = 0;
 	}
 
 	void setCanGroup(boolean canGroup) {
 		this.canGroup = canGroup;
 	}
 
-	void setGroup(List<T> group) {
+	void setAppend(int append) {
+		this.append = append;
+	}
+
+	void setGroup(List<V> group) {
 		this.group = group;
 	}
 
-	void setToKeep(Element<T> toKeep) {
+	void setToKeep(List<V> toKeep) {
 		this.toKeep = toKeep;
 	}
 
@@ -39,59 +48,94 @@ public class RuleResult<T> {
 		return canGroup;
 	}
 
-	public List<T> getGroup() {
+	public int getAppend() {
+		return append;
+	}
+
+	public List<V> getGroup() {
 		return group;
 	}
 
-	public Element<T> getToKeep() {
+	public List<V> getToKeep() {
 		return toKeep;
 	}
 
-	public static RuleResult canGroup(List group, Element toKeep) {
+	public int getDiscard() {
+		return discard;
+	}
+
+	public void setDiscard(int discard) {
+		this.discard = discard;
+	}
+
+	public static RuleResult groupAndKeep(List<Object> group, List<Object> toKeep) {
 
 		RuleResult ruleResult = RuleResultPool.borrow();
-		ruleResult.build(true, group, toKeep);
+		ruleResult.build(true, 0, 0, group, toKeep);
 		return ruleResult;
 	}
 
-	public static RuleResult canGroup(List group) {
+	public static RuleResult groupAndDiscard(List<Object> group) {
 		RuleResult ruleResult = RuleResultPool.borrow();
-		ruleResult.build(true, group, null);
+		ruleResult.build(true, 0, 1, group, null);
 		return ruleResult;
 	}
 
-	public static RuleResult cantGroup(Element toKeep) {
-
+	public static RuleResult groupAllAndDiscard() {
 		RuleResult ruleResult = RuleResultPool.borrow();
-		ruleResult.build(false, null, toKeep);
+		ruleResult.build(true, 0, 1, null, null);
 		return ruleResult;
 	}
 
-	public static RuleResult cantGroup() {
-
+	public static RuleResult groupAndAppend() {
 		RuleResult ruleResult = RuleResultPool.borrow();
-		ruleResult.build(false, null, null);
+		ruleResult.build(true, 1, 0,null, null);
 		return ruleResult;
 	}
 
-	public static RuleResult canNotGroup(Element toKeep) {
+	public static RuleResult discardAndAppendAndGroup() {
 		RuleResult ruleResult = RuleResultPool.borrow();
-
-		if (toKeep == null || toKeep.getValues() == null || toKeep.getValues().isEmpty()) {
-			ruleResult.build(false, null, null);
-		}
-		else {
-			ruleResult.build(false, null, toKeep);
-		}
+		ruleResult.build(true, -1, -1,null, null);
 		return ruleResult;
-
 	}
 
-	public static RuleResult canNotGroup() {
+	public static RuleResult appendAndGroup() {
+		RuleResult ruleResult = RuleResultPool.borrow();
+		ruleResult.build(true, -1, 0,null, null);
+		return ruleResult;
+	}
+
+	public static RuleResult appendAndGroupAndDiscard() {
+		RuleResult ruleResult = RuleResultPool.borrow();
+		ruleResult.build(true, -1, 1,null, null);
+		return ruleResult;
+	}
+
+	public static RuleResult notGroupAndKeep(List<Object> toKeep) {
+		RuleResult ruleResult = RuleResultPool.borrow();
+		ruleResult.build(false, 0,0, null, toKeep);
+		return ruleResult;
+	}
+
+	public static RuleResult notGroupAndAppend() {
 
 		RuleResult ruleResult = RuleResultPool.borrow();
-		ruleResult.build(false, null, null);
+		ruleResult.build(false, 1, 0,null, null);
+		return ruleResult;
+	}
+
+	public static RuleResult notGroup() {
+
+		RuleResult ruleResult = RuleResultPool.borrow();
+		ruleResult.build(false, 0, 0,null, null);
+		return ruleResult;
+	}
+
+
+	public static RuleResult notGroupAndDiscardAll() {
+
+		RuleResult ruleResult = RuleResultPool.borrow();
+		ruleResult.build(false, 0, -1,null, null);
 		return ruleResult;
 	}
 }
-

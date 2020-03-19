@@ -5,12 +5,10 @@ import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.Rule;
 import cat.altimiras.shepherd.RuleResult;
 
-import java.util.List;
-
-public class GroupAllRule implements Rule<Object> {
+public class DiscardAllRule implements Rule<Object> {
 
 	@Override
 	public RuleResult canGroup(Metadata metadata, Object value, LazyValue lazyValue) {
-		return RuleResult.groupAllAndDiscard();
+		return RuleResult.notGroupAndDiscardAll();
 	}
 }

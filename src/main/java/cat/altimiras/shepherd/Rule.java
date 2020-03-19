@@ -2,5 +2,5 @@ package cat.altimiras.shepherd;
 
 public interface Rule<T> {
 
-	RuleResult canGroup(Element<T> element);
+	RuleResult canGroup(Metadata metadata, T value, LazyValue<?, T> lazyValue);
 }

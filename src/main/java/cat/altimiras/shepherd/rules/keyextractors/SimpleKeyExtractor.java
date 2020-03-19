@@ -1,11 +1,11 @@
 package cat.altimiras.shepherd.rules.keyextractors;
 
-import cat.altimiras.shepherd.KeyExtractor;
+import java.util.function.Function;
 
-public class SimpleKeyExtractor implements KeyExtractor {
+public class SimpleKeyExtractor implements Function<Object, Object> {
 
 	@Override
-	public Object key(Object o) {
+	public Object apply(Object o) {
 		return o;
 	}
 }

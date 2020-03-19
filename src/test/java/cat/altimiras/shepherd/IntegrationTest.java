@@ -1,31 +1,48 @@
 package cat.altimiras.shepherd;
 
-import cat.altimiras.shepherd.callback.ResultsPool;
+import cat.altimiras.shepherd.callback.FileCollector;
+import cat.altimiras.shepherd.callback.ListCollector;
 import cat.altimiras.shepherd.rules.AccumulateNRule;
+import cat.altimiras.shepherd.rules.AccumulateRule;
+import cat.altimiras.shepherd.rules.DiscardAllExpiredRuleSliding;
+import cat.altimiras.shepherd.rules.GroupAllExpiredRuleSliding;
 import cat.altimiras.shepherd.rules.NoDuplicatesRule;
-import cat.altimiras.shepherd.rules.keyextractors.NoDuplicatesKeyExtractor;
+import cat.altimiras.shepherd.rules.keyextractors.SameKeyExtractor;
 import cat.altimiras.shepherd.rules.keyextractors.SimpleKeyExtractor;
+import cat.altimiras.shepherd.storage.file.FileValuesStorage;
+import cat.altimiras.shepherd.storage.redis.RedisValuesStorage;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 
-//@Ignore
+@Ignore
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class IntegrationTest {
 
-	//THIS IS NOT UNIT TEST.
+	//THIS DON'T PRETEND TO BE A UNIT TEST.
 
 	@Test
-	public void noDuplicates() throws Exception{
+	public void noDuplicates() throws Exception {
 
-		ResultsPool<Integer> resultsPool = new ResultsPool();
+		ListCollector<Integer> listCollector = new ListCollector();
 
-		ShepherdASync shepherd = ShepherdBuilder.create().basic(new NoDuplicatesKeyExtractor(), Optional.of(Arrays.asList(new NoDuplicatesRule())), resultsPool).threads(1).build();
+		ShepherdASync shepherd = ShepherdBuilder.create()
+				.basic(
+						new SimpleKeyExtractor(),
+						Optional.of(Collections.singletonList(new NoDuplicatesRule())),
+						listCollector)
+				.threads(1)
+				.build();
 
 		shepherd.add(1);
 		shepherd.add(2);
@@ -33,21 +50,27 @@ public class IntegrationTest {
 		shepherd.add(2);
 		shepherd.add(2);
 		shepherd.add(1);
-		Thread.sleep(200);
 
-		assertEquals(3,resultsPool.size());
-		assertEquals(1,  resultsPool.get(1).get(0).get(0).intValue());
-		assertEquals(2,  resultsPool.get(1).get(0).get(0).intValue());
-		assertEquals(1,  resultsPool.get(1).get(0).get(0).intValue());
+		await().atMost(1, SECONDS).until(shepherd::areQueuesEmpty);
+
+		assertEquals(2, listCollector.size());
+		assertEquals(1, listCollector.get(1).get(0).get(0).intValue());
+		assertEquals(2, listCollector.get(1).get(0).get(0).intValue());
 
 	}
 
 	@Test
-	public void accumulate() throws Exception{
+	public void accumulate() throws Exception {
 
-		ResultsPool resultsPool = new ResultsPool();
+		ListCollector listCollector = new ListCollector();
 
-		ShepherdASync shepherd = ShepherdBuilder.create().basic(new SimpleKeyExtractor(), Optional.of(Arrays.asList(new AccumulateNRule(2))), resultsPool).threads(1).build();
+		ShepherdASync shepherd = ShepherdBuilder.create()
+				.basic(
+						new SimpleKeyExtractor(),
+						Optional.of(Collections.singletonList(new AccumulateNRule(2))),
+						listCollector)
+				.threads(1)
+				.build();
 
 		shepherd.add(1);
 		shepherd.add(2);
@@ -56,10 +79,11 @@ public class IntegrationTest {
 		shepherd.add(2);
 		shepherd.add(3);
 		shepherd.add(3);
-		Thread.sleep(200);
 
-		assertEquals(3,resultsPool.size());
-		List<List> result = resultsPool.get();
+		await().atMost(1, SECONDS).until(shepherd::areQueuesEmpty);
+
+		assertEquals(3, listCollector.size());
+		List<List> result = listCollector.get();
 		assertEquals(2, result.get(0).size());
 		assertEquals(2, result.get(0).get(0));
 		assertEquals(2, result.get(0).get(1));
@@ -73,11 +97,50 @@ public class IntegrationTest {
 	}
 
 	@Test
-	public void accumulate2() throws Exception{
+	public void accumulateMultiPartition() throws Exception {
 
-		ResultsPool resultsPool = new ResultsPool();
+		ListCollector listCollector = new ListCollector();
 
-		ShepherdASync shepherd = ShepherdBuilder.create().basic(new SimpleKeyExtractor(), Optional.of(Arrays.asList(new AccumulateNRule(2))), resultsPool).build();
+		ShepherdASync shepherd = ShepherdBuilder.create()
+				.basic(
+						new SimpleKeyExtractor(),
+						Optional.of(Collections.singletonList(new AccumulateNRule(2))),
+						listCollector)
+				.threads(2)
+				.build();
+
+		shepherd.add(1);
+		shepherd.add(2);
+		shepherd.add(2);
+		shepherd.add(1);
+		shepherd.add(2);
+		shepherd.add(3);
+		shepherd.add(3);
+
+		await().atMost(1, SECONDS).until(shepherd::areQueuesEmpty);
+
+		assertEquals(3, listCollector.size());
+		List<List> result = listCollector.get();
+		//as it is multithread order is not predectible
+		assertEquals(2, result.get(0).size());
+		assertEquals(result.get(0).get(0), result.get(0).get(1));
+		assertEquals(2, result.get(1).size());
+		assertEquals(result.get(1).get(0), result.get(1).get(1));
+		assertEquals(2, result.get(2).size());
+		assertEquals(result.get(2).get(0), result.get(2).get(1));
+	}
+
+	@Test
+	public void accumulate2() throws Exception {
+
+		ListCollector listCollector = new ListCollector();
+
+		ShepherdASync shepherd = ShepherdBuilder.create()
+				.basic(
+						new SimpleKeyExtractor(),
+						Optional.of(Collections.singletonList(new AccumulateNRule(2))),
+						listCollector)
+				.build();
 
 		shepherd.add(1);
 		shepherd.add(2);
@@ -88,10 +151,11 @@ public class IntegrationTest {
 		shepherd.add(3);
 		shepherd.add(2);
 		shepherd.add(2);
-		Thread.sleep(200);
 
-		assertEquals(4,resultsPool.size());
-		List<List> result = resultsPool.get();
+		await().atMost(1, SECONDS).until(shepherd::areQueuesEmpty);
+
+		assertEquals(4, listCollector.size());
+		List<List> result = listCollector.get();
 		assertEquals(2, result.get(0).size());
 		assertEquals(2, result.get(0).get(0));
 		assertEquals(2, result.get(0).get(1));
@@ -107,64 +171,121 @@ public class IntegrationTest {
 	}
 
 	@Test
-	public void accumulateTimeout() throws Exception{
+	public void noRepeatsInWindows() throws Exception {
 
-		ResultsPool resultsPool = new ResultsPool();
+		ListCollector listCollector = new ListCollector();
 
-		ShepherdASync shepherd = ShepherdBuilder.create().basic(new SimpleKeyExtractor(), Optional.empty(), resultsPool).threads(1).withDog(Duration.ofMillis(50), Arrays.asList(new AccumulateNRule(2))).build();
+		ShepherdASync shepherd = ShepherdBuilder.create()
+				.basic(
+						new SimpleKeyExtractor(),
+						Optional.of(Collections.singletonList(new NoDuplicatesRule())),
+						listCollector)
+				.threads(1)
+				.withDog(
+						Duration.ofMillis(10),
+						Collections.singletonList(new DiscardAllExpiredRuleSliding(50, false)))
+				.build();
 
 		shepherd.add(1);
 		shepherd.add(1);
+		Thread.sleep(100);
 		shepherd.add(1);
-		Thread.sleep(200);
 
-		List<Integer> result = (List<Integer>) resultsPool.get().get(0);
-		assertEquals(3, result.size());
-		assertEquals(1, result.get(0).intValue());
-		assertEquals(1, result.get(1).intValue());
-		assertEquals(1, result.get(2).intValue());
+		await().atMost(1, SECONDS).until(shepherd::areQueuesEmpty);
+
+		assertEquals(2, listCollector.size());
+		List<List<Integer>> result = listCollector.get();
+		assertEquals(1, result.get(0).get(0).intValue());
+		assertEquals(1, result.get(1).get(0).intValue());
 	}
 
 	@Test
-	public void accumulateTimeout2() throws Exception{
+	public void accumulateWindows() throws Exception {
 
-		ResultsPool resultsPool = new ResultsPool();
+		ListCollector listCollector = new ListCollector();
 
-		ShepherdASync shepherd = ShepherdBuilder.create().basic(new SimpleKeyExtractor(), Optional.empty(), resultsPool).threads(1).withDog(Duration.ofMillis(50), Arrays.asList(new AccumulateNRule(2))).build();
+		ShepherdASync shepherd = ShepherdBuilder.create()
+				.basic(
+						new SimpleKeyExtractor(),
+						Optional.empty(),
+						listCollector)
+				.threads(1)
+				.withDog(
+						Duration.ofMillis(10),
+						Collections.singletonList(new GroupAllExpiredRuleSliding(100, false)))
+				.build();
 
-		shepherd.add(1);
-		shepherd.add(1);
-		shepherd.add(1);
-		Thread.sleep(300);
+		shepherd.add("lolo");
+		shepherd.add("lala");
+		shepherd.add("lele");
+		Thread.sleep(50);
 
-		List<Integer> result = (List<Integer>) resultsPool.get().get(0);
-		assertEquals(3, result.size());
-		assertEquals(1, result.get(0).intValue());
-		assertEquals(1, result.get(1).intValue());
-		assertEquals(1, result.get(2).intValue());
+		await().atMost(1, SECONDS).until(shepherd::areQueuesEmpty);
 
-		shepherd.add(1);
-		Thread.sleep(200);
-
-		assertEquals(0, resultsPool.get().size());
-
-		shepherd.add(2);
-		Thread.sleep(200);
-
-		assertEquals(0, resultsPool.get().size());
-
-		shepherd.add(2);
-		shepherd.add(1);
-		Thread.sleep(300);
-
-		List<List<Integer>> result2 = resultsPool.get();
-		assertEquals(2, result2.size());
-		assertEquals(2, result2.get(0).size());
-		assertEquals(1, result2.get(0).get(0).intValue());
-		assertEquals(1, result2.get(0).get(1).intValue());
-		assertEquals(2, result2.get(1).size());
-		assertEquals(2, result2.get(1).get(0).intValue());
-		assertEquals(2, result2.get(1).get(1).intValue());
+		assertEquals(3, listCollector.size());
+		List<List<String>> result = listCollector.get();
+		assertEquals("lolo", result.get(0).get(0));
+		assertEquals("lala", result.get(1).get(0));
+		assertEquals("lele", result.get(2).get(0));
 	}
 
+	@Test
+	public void accumulateContentWindowsInFile() throws Exception {
+
+		FileCollector fileCollector = new FileCollector();
+
+		ShepherdASync shepherd = ShepherdBuilder.create()
+				.basic(
+						new SameKeyExtractor(),
+						Optional.of(Collections.singletonList(new AccumulateRule())),
+						fileCollector)
+				.threads(1)
+				.withValuesStorageProvider(FileValuesStorage::new)
+				.withDog(
+						Duration.ofMillis(10),
+						Collections.singletonList(new GroupAllExpiredRuleSliding(1000, false)))
+				.build();
+
+		shepherd.add("lolo");
+		shepherd.add("lala");
+		shepherd.add("lele");
+		Thread.sleep(1000);
+
+		await().atMost(1, SECONDS).until(shepherd::areQueuesEmpty);
+
+		List<Path> result = fileCollector.get();
+		assertEquals(1, result.size());
+
+		assertEquals("lololalalele", new String(Files.readAllBytes(result.get(0))));
+	}
+
+	@Test
+	public void accumulateContentWindowsInRedis() throws Exception {
+
+		ListCollector binaryCollector = new ListCollector();
+
+		ShepherdASync shepherd = ShepherdBuilder.create()
+				.basic(
+						new SameKeyExtractor(),
+						Optional.of(Collections.singletonList(new AccumulateRule())),
+						binaryCollector)
+				.threads(1)
+				.withValuesStorageProvider(RedisValuesStorage::new)
+				.withDog(
+						Duration.ofMillis(10),
+						Collections.singletonList(new GroupAllExpiredRuleSliding(1000, false)))
+				.build();
+
+		shepherd.add("lolo");
+		shepherd.add("lala");
+		shepherd.add("lele");
+		Thread.sleep(1000);
+
+		await().atMost(1, SECONDS).until(shepherd::areQueuesEmpty);
+
+		List<String> result = binaryCollector.get();
+		assertEquals(1, result.size());
+
+		assertEquals("lololalalele", result.get(0));
+	}
 }

@@ -1,14 +1,14 @@
 package cat.altimiras.shepherd;
 
-import java.time.Instant;
-
 public interface Shepherd<T> {
 
-	boolean add(T t, Instant timestmap);
-
-	boolean add(T t, Long timestmap);
+	boolean add(T t, long timestamp);
 
 	boolean add(T t);
+
+	boolean add(Object key, T t, long timestamp);
+
+	boolean add(Object key, T t);
 
 	void forceTimeout();
 

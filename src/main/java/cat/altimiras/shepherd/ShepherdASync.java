@@ -2,31 +2,33 @@ package cat.altimiras.shepherd;
 
 import cat.altimiras.shepherd.consumer.BasicConsumer;
 import cat.altimiras.shepherd.consumer.DogConsumer;
-import cat.altimiras.shepherd.scheduler.BasicScheduler;
 import cat.altimiras.shepherd.scheduler.Scheduler;
+import cat.altimiras.shepherd.storage.MetadataStorage;
+import cat.altimiras.shepherd.storage.ValuesStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
-import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-public class ShepherdASync<T> extends ShepherdBase<T> {
+public class ShepherdASync<T, S> extends ShepherdBase<T, S> {
 
 	protected static final Logger log = LoggerFactory.getLogger(ShepherdASync.class);
 
-	private final LinkedBlockingQueue<Element<T>>[] queues;
+	private final LinkedBlockingQueue<InputValue<T>>[] queues;
 
 	private final ExecutorService pool;
 
 	private final int threads;
 
-	ShepherdASync(int thread, KeyExtractor keyExtractor, List<Rule<T>> rules, RuleExecutor<T> ruleExecutor, Callback<T> callback, Optional<ShepherdBuilder.Dog> dog, Optional<ShepherdBuilder.Monitoring> monitoring) {
+	ShepherdASync(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, int thread, Function keyExtractor, List<Rule<S>> rules, RuleExecutor<T> ruleExecutor, Consumer<S> callback, Optional<ShepherdBuilder.Dog> dog, Optional<ShepherdBuilder.Monitoring> monitoring) {
 
 		super(keyExtractor, callback, ruleExecutor, thread, dog.isPresent(), monitoring);
 
@@ -35,7 +37,7 @@ public class ShepherdASync<T> extends ShepherdBase<T> {
 		this.pool = Executors.newFixedThreadPool(thread);
 
 		initializeQueues();
-		startConsumers(rules, dog);
+		startConsumers(metadataStorageProvider, valuesStorageProvider, rules, dog);
 	}
 
 	private void initializeQueues() {
@@ -44,65 +46,88 @@ public class ShepherdASync<T> extends ShepherdBase<T> {
 		}
 	}
 
-	private void startConsumers(List<Rule<T>> rules, Optional<ShepherdBuilder.Dog> dog) {
+	private void startConsumers(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, List<Rule<S>> rules, Optional<ShepherdBuilder.Dog> dog) {
 		for (int i = 0; i < threads; i++) {
-			QueueConsumer qc = getAsyncConsumer(rules, dog, i);
+			QueueConsumer qc = getAsyncConsumer(metadataStorageProvider, valuesStorageProvider, rules, dog, i);
 			consumers.add(qc);
 			pool.submit(qc);
 		}
 	}
 
-	private QueueConsumer getAsyncConsumer(List<Rule<T>> rules, Optional<ShepherdBuilder.Dog> dog, int index) {
+	private QueueConsumer getAsyncConsumer(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, List<Rule<S>> rules, Optional<ShepherdBuilder.Dog> dog, int index) {
 		if (dog.isPresent()) {
-			Scheduler scheduler = new BasicScheduler(Clock.systemUTC(), dog.get().getTtl());
-			return new DogConsumer(rules, this.ruleExecutor, this.queues[index], scheduler, dog.get().getRulesTimeout(), dog.get().getTtl(), Clock.systemUTC(), dog.get().getRuleExecutor(), this.callback);
-		}
-		else {
-			return new BasicConsumer(rules, this.queues[index], this.ruleExecutor, this.callback);
+
+			return new DogConsumer(
+					metadataStorageProvider.get(),
+					valuesStorageProvider.get(),
+					rules,
+					this.ruleExecutor,
+					this.queues[index],
+					(Scheduler) dog.get().getSchedulerProvider().get(),
+					dog.get().getRulesTimeout(),
+					dog.get().getPrecision(),
+					Clock.systemUTC(),
+					dog.get().getRuleExecutor(),
+					this.callback);
+		} else {
+			return new BasicConsumer(
+					metadataStorageProvider.get(),
+					valuesStorageProvider.get(),
+					rules,
+					this.queues[index],
+					this.ruleExecutor,
+					this.callback);
 		}
 	}
 
 	@Override
-	public boolean add(T t, Instant timestmap) {
+	public boolean add(T t, long timestamp) {
 		try {
-			Object key = keyExtractor.key(t);
-			if (key == null) {
-				log.error("Extracted key == null, discarding object");
-				log.info("Element discarded {}", t);
-				return false;
-			}
-			else {
-				Element element = timestmap == null ? new Element(key, t) : new Element(key, t, timestmap);
-				if (queues.length == 1) {
-					queues[0].put(element);
-				}
-				else {
-					int indexQueue = key.hashCode() % threads;
-					//hashcode can be negative
-					queues[indexQueue < 0 ? -indexQueue : indexQueue].put(element);
-				}
-			}
-			return true;
-		}
-		catch (Exception e) {
+			Object key = keyExtractor.apply(t);
+			return add(key, t, timestamp);
+		} catch (Exception e) {
 			log.error("Error adding element", e);
 			return false;
 		}
 	}
 
 	@Override
-	public boolean add(T t, Long timestamp) {
-		return add(t, Instant.ofEpochMilli(timestamp));
+	public boolean add(Object key, T t, long timestamp) {
+		try {
+			if (key == null) {
+				log.error("Extracted key == null, discarding object");
+				log.info("Element discarded {}", t);
+				return false;
+			} else {
+				InputValue inputValue = new InputValue(t, key, timestamp);
+				if (queues.length == 1) {
+					queues[0].put(inputValue);
+				} else {
+					int indexQueue = key.hashCode() % threads;
+					//hashcode can be negative
+					queues[indexQueue < 0 ? -indexQueue : indexQueue].put(inputValue);
+				}
+			}
+			return true;
+		} catch (Exception e) {
+			log.error("Error adding element", e);
+			return false;
+		}
+	}
+
+	@Override
+	public boolean add(Object key, T t) {
+		return add(key, t, -1);
 	}
 
 	@Override
 	public boolean add(T t) {
-		return add(t, (Instant) null);
+		return add(t, -1);
 	}
 
 	@Override
 	public void stop(boolean forceTimeout) {
-		if (forceTimeout){
+		if (forceTimeout) {
 			this.forceTimeout(true);
 		}
 		pool.shutdown();
@@ -110,8 +135,8 @@ public class ShepherdASync<T> extends ShepherdBase<T> {
 
 	public boolean areQueuesEmpty() {
 
-		for(int i = 0; i< queues.length; i++){
-			if (!queues[i].isEmpty()){
+		for (int i = 0; i < queues.length; i++) {
+			if (!queues[i].isEmpty()) {
 				return false;
 			}
 		}

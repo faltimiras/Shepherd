@@ -2,29 +2,34 @@ package cat.altimiras.shepherd.scheduler;
 
 import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
 
 public class BasicScheduler implements Scheduler {
 
 	private final Clock clock;
-	private final Duration maxTime;
+	private final long maxTime;
+	private boolean firstTime = true;
 
-	private Instant lastExecution;
+	private long lastExecution;
 
 	public BasicScheduler(Clock clock, Duration maxTime) {
 		this.clock = clock;
-		this.maxTime = maxTime;
-		this.lastExecution = clock.instant();
+		this.maxTime = maxTime.toMillis();
+		this.lastExecution = clock.millis();
 	}
 
 	@Override
-	public long calculateWaitingTime() {
-		Duration diff = Duration.between(lastExecution, clock.instant());
-		return diff.compareTo(maxTime) < 0 ? maxTime.minus(diff).toMillis() : 0;
+	public long calculateWaitingTime(long lastExecutionDurationMs) {
+		if (firstTime) {
+			firstTime = false;
+			return maxTime;
+
+		}
+		long diff = clock.millis() - lastExecution;
+		return diff < maxTime ? maxTime - diff : 0;
 	}
 
 	@Override
 	public void justExecuted() {
-		this.lastExecution = clock.instant();
+		this.lastExecution = clock.millis();
 	}
 }

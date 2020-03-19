@@ -1,9 +1,10 @@
 package cat.altimiras.shepherd;
 
-import cat.altimiras.shepherd.callback.ResultsPool;
+import cat.altimiras.shepherd.callback.ListCollector;
 import org.junit.Test;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
@@ -15,30 +16,20 @@ public class ShepherdASyncTest {
 	@Test
 	public void addNull() throws Exception{
 		Object o = new Object();
-		KeyExtractor keyExtractor = mock(KeyExtractor.class);
-		when(keyExtractor.key(o)).thenReturn(null);
+		Function keyExtractor = mock(Function.class);
+		when(keyExtractor.apply(o)).thenReturn(null);
 
-		ShepherdASync shepherd = ShepherdBuilder.create().basic(keyExtractor, Optional.empty(), new ResultsPool()).build();
-		assertFalse(shepherd.add(o));
-	}
-
-	@Test
-	public void addException() throws Exception{
-		Object o = new Object();
-		KeyExtractor keyExtractor = mock(KeyExtractor.class);
-		when(keyExtractor.key(o)).thenThrow(new Exception());
-
-		ShepherdASync shepherd = ShepherdBuilder.create().basic(keyExtractor, Optional.empty(), new ResultsPool()).build();
+		ShepherdASync shepherd = ShepherdBuilder.create().basic(keyExtractor, Optional.empty(), new ListCollector()).build();
 		assertFalse(shepherd.add(o));
 	}
 
 	@Test
 	public void add() throws Exception{
 		Object o = new Object();
-		KeyExtractor keyExtractor = mock(KeyExtractor.class);
-		when(keyExtractor.key(o)).thenReturn(o);
+		Function keyExtractor = mock(Function.class);
+		when(keyExtractor.apply(o)).thenReturn(o);
 
-		ShepherdASync shepherd = ShepherdBuilder.create().basic(keyExtractor, Optional.empty(), new ResultsPool()).build();
+		ShepherdASync shepherd = ShepherdBuilder.create().basic(keyExtractor, Optional.empty(), new ListCollector()).build();
 		assertTrue(shepherd.add(o));
 	}
 }

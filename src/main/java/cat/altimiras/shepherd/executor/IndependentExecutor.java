@@ -1,7 +1,8 @@
 package cat.altimiras.shepherd.executor;
 
 
-import cat.altimiras.shepherd.Element;
+import cat.altimiras.shepherd.LazyValue;
+import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.Rule;
 import cat.altimiras.shepherd.RuleExecutor;
 import cat.altimiras.shepherd.RuleResult;
@@ -15,17 +16,18 @@ import java.util.List;
  *
  * @param <T>
  */
-public class IndependentExecutor<T> implements RuleExecutor<T> {
+public class IndependentExecutor<T, S> implements RuleExecutor<T> {
 
 	@Override
-	public RuleResult<T> execute(Element<T> element, List<Rule<T>> rules) {
+	public RuleResult<T> execute(Metadata metadata, T newValue, LazyValue lazyValue, List<Rule<T>> rules) {
+
 		RuleResult result = null;
 		for (Rule rule : rules) {
-			result = rule.canGroup(element);
+			result = rule.canGroup(metadata, newValue, lazyValue);
 			if (result.canGroup()) {
 				return result;
 			}
 		}
-		return result == null ? RuleResult.cantGroup() : result;
+		return result == null ? RuleResult.notGroupAndDiscardAll() : result;
 	}
 }

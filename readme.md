@@ -11,7 +11,7 @@ Define your keyExtractor and your first rule (or use predetermined):
 Then just create an instance of Shepherd
 
 ```
-Shepherd shepherd = Shepherd.create().basic(1, new SimpleKeyExtractor(), Optional.of(Arrays.asList(new AccumulateNRule(2))), resultsPool).build();
+Shepherd shepherd = Shepherd.create().basic(1, new SimpleKeyExtractor(), Optional.of(Arrays.asList(new AccumulateNRule(2))), listCollector).build();
 shepherd.add(1);
 shepherd.add(2);
 shepherd.add(2);
@@ -37,7 +37,7 @@ SimpleKeyExtractor is already coded. It use same object as key. Useful for basic
 To decide when objects accumulated can be group and "released".
 ```
 public interface Rule<T> {
-	RuleResult canGroup(Element<T> element);
+	RuleResult canGroup(Element<T> record);
 }
 ```
 
@@ -53,7 +53,7 @@ RuleResult.cantGroup(..) or RuleResult.canNotGroup(..)
 
 There are 2 already coded simple rules:
 - AccumulatedNRule : Accumulates elements until desired amount is reached
-- NoDuplicatesRule: In an stream of elements just "propagate" elements that are not equal to previous element (This rule only works alone and only with NoDuplicatesKeyExtractor )
+- NoDuplicatesRule: In an stream of elements just "propagate" elements that are not equal to previous record (This rule only works alone and only with NoDuplicatesKeyExtractor )
 
 
 **Callback**
@@ -68,11 +68,11 @@ The Dog is the reaper that every certain time checks for elements that has been 
 To set up just tell to the dog maximum time elements can be in the herd and the rules to decide if elements must be group or not
  
  ```
-Shepherd shepherd = Shepherd.create().basic(1, new SimpleKeyExtractor(), Optional.empty(), resultsPool).withDog(Duration.ofMillis(50), Arrays.asList(new AccumulateNRule(2))).build();
+Shepherd shepherd = Shepherd.create().basic(1, new SimpleKeyExtractor(), Optional.empty(), listCollector).withDog(Duration.ofMillis(50), Arrays.asList(new AccumulateNRule(2))).build();
  ```
 **RuleExecutor**
 
-Rule executor is responsible to apply the rules to an element. By default Rules are executed independently (IndependentExecutor) but you can also chain them (second rule receives toKeep values from previous rule) or you can implement your own.
+Rule executor is responsible to apply the rules to an record. By default Rules are executed independently (IndependentExecutor) but you can also chain them (second rule receives toKeep values from previous rule) or you can implement your own.
 To set up the executor, just: .setRuleExecutor(RuleExecutor ruleExecutor)
 
 **Monitoring**
@@ -91,8 +91,8 @@ DEEP (all LOW metrics plus)
 * AVG_ELEMENTS_GROUP - AVG elements inside groups  NUM_ELEMENTS_TOTAL/NUM_ELEMENTS
 * MAX_ELEMENT_GROUP - Number of elements of the group with max number of elements
 * MIN_ELEMENT_GROUP - Number of elements of the group with max number of elements
-* OLDEST_ELEMENT - Birth time of the oldest element 
-* AGE_OLDEST_ELEMENT_s - Age in seconds of the oldest element
+* OLDEST_ELEMENT - Birth time of the oldest record 
+* AGE_OLDEST_ELEMENT_s - Age in seconds of the oldest record
 
  ```
 .withMonitoring(new LogStatsListener()).level(Level.LOW)

@@ -17,35 +17,37 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-abstract class ShepherdBase<T> implements Shepherd<T> {
+abstract class ShepherdBase<T,S> implements Shepherd<T> {
 
 	protected static final Logger log = LoggerFactory.getLogger(ShepherdBase.class);
 
-	protected final KeyExtractor keyExtractor;
+	protected final Function keyExtractor;
 
-	protected final Callback<T> callback;
+	protected final Consumer<S> callback;
 
 	protected final RuleExecutor<T> ruleExecutor;
 
-	private final ScheduledExecutorService statPool;
+	//private final ScheduledExecutorService statPool;
 
-	private final List<StatsListener> statsListeners;
+	//private final List<StatsListener> statsListeners;
 
 	private final boolean hasDog;
 
 	protected final List<QueueConsumer> consumers;
 
 
-	public ShepherdBase(KeyExtractor keyExtractor, Callback<T> callback, RuleExecutor<T> ruleExecutor, int numConsumers, boolean hasDog, Optional<ShepherdBuilder.Monitoring> monitoring) {
+	public ShepherdBase(Function keyExtractor,  Consumer<S> callback, RuleExecutor<T> ruleExecutor, int numConsumers, boolean hasDog, Optional<ShepherdBuilder.Monitoring> monitoring) {
 		this.keyExtractor = keyExtractor;
 		this.callback = callback;
 		this.ruleExecutor = ruleExecutor;
 		this.consumers = new ArrayList<>(numConsumers);
 		this.hasDog = hasDog;
-
+/*
 		if (monitoring.isPresent()) {
-			this.statsListeners = monitoring.get().getStatsListeners();
+			/*this.statsListeners = monitoring.get().getStatsListeners();
 			this.statPool = Executors.newScheduledThreadPool(1);
 			this.statPool.scheduleWithFixedDelay(
 					() -> collectStatsConsumers(monitoring.get().getLevel(), monitoring.get().getElementDebugSerializer()),
@@ -58,27 +60,10 @@ abstract class ShepherdBase<T> implements Shepherd<T> {
 			this.statsListeners = null;
 			this.statPool = null;
 		}
+		*/
 	}
 
-	private void collectStatsConsumers(Level level, ElementDebugSerializer debugSerializer) {
-		try {
-			log.debug("Collection stats loop just started");
-			List<Map<Stats, Metric>> metrics = new ArrayList<>(consumers.size());
 
-			for (QueueConsumer consumer : consumers) {
-				metrics.add(consumer.getStats(level, debugSerializer));
-			}
-
-			if (!metrics.isEmpty()) {
-				for (StatsListener listener : statsListeners) {
-					listener.push(metrics);
-				}
-			}
-		}
-		catch (Exception e) {
-			log.error("Error collecting shepherd stats", e);
-		}
-	}
 
 	public void forceTimeout() {
 		forceTimeout(false);
