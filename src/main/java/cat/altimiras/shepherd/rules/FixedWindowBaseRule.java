@@ -4,6 +4,7 @@ import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.Rule;
 
 import java.time.Clock;
+import java.time.Duration;
 
 /**
  * Fixed window is not related to element added to the system, it depends on UTC.
@@ -11,12 +12,14 @@ import java.time.Clock;
  */
 public abstract class FixedWindowBaseRule implements Rule<Object> {
 
-	final private long window;
+	final private Duration window;
 	final private Clock clock;
+	private long endCurrentOpenWindow;
 
-	public FixedWindowBaseRule(long window, Clock clock) {
+	public FixedWindowBaseRule(Duration window, Clock clock) {
 		this.window = window;
 		this.clock = clock;
+		endCurrentOpenWindow = nextEnd();
 	}
 
 	/**
@@ -25,10 +28,9 @@ public abstract class FixedWindowBaseRule implements Rule<Object> {
 	 */
 	protected boolean isWindowExpired(Metadata metadata) {
 
-		
-		long timeReference = fromLastElement ? metadata.getLastElementTs() : metadata.getCreationTs();
 		long now = clock.millis();
-		if (now > timeReference + window) {
+		if (now >= endCurrentOpenWindow) {
+			endCurrentOpenWindow = nextEnd();
 			return true;
 		}
 		return false;
@@ -37,5 +39,17 @@ public abstract class FixedWindowBaseRule implements Rule<Object> {
 
 	protected boolean isWindowOpen(Metadata metadata) {
 		return !isWindowExpired(metadata);
+	}
+
+	long getEndCurrentOpenWindow() {
+		return endCurrentOpenWindow;
+	}
+
+	private long nextEnd() {
+
+		long now = clock.millis();
+		long millis = window.toMillis();
+		long mod = now % millis;
+		return now + millis - mod;
 	}
 }

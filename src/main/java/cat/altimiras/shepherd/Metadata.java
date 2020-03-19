@@ -7,7 +7,7 @@ public class Metadata<K> {
 
 	private final K key;
 	private final long creationTs;
-	private final Map<String, Object> metadata = new HashMap<>(5);
+	private Map<String, Object> metadata;
 	private long lastElementTs;
 	private long elementsCount; //user is responsible to keep this value updated
 
@@ -32,16 +32,25 @@ public class Metadata<K> {
 		this.lastElementTs = lastElementTs;
 	}
 
-	public void add(String key, Object value){
+	public void add(String key, Object value) {
+		if (this.metadata == null) {
+			this.metadata = new HashMap<>(2);
+		}
 		this.metadata.put(key, value);
 	}
 
-	public void remove(String key){
-		this.metadata.remove(key);
+	public void remove(String key) {
+		if (this.metadata != null) {
+			this.metadata.remove(key);
+		}
 	}
 
-	public Object get(String key){
-		return this.metadata.get(key);
+	public Object get(String key) {
+		if (this.metadata == null) {
+			return null;
+		} else {
+			return this.metadata.get(key);
+		}
 	}
 
 	public long getElementsCount() {
@@ -52,19 +61,19 @@ public class Metadata<K> {
 		this.elementsCount = elementsCount;
 	}
 
-	public void incElementsCount(){
+	public void incElementsCount() {
 		this.elementsCount++;
 	}
 
-	public void decElmentsCount(){
+	public void decElmentsCount() {
 		this.elementsCount--;
 	}
 
-	public void incElementsCount(long value){
+	public void incElementsCount(long value) {
 		this.elementsCount = this.elementsCount + value;
 	}
 
-	public void decElmentsCount(long value){
+	public void decElmentsCount(long value) {
 		this.elementsCount = this.elementsCount - value;
 	}
 }
