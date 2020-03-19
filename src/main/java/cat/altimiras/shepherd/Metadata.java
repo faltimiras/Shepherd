@@ -9,7 +9,7 @@ public class Metadata<K> {
 	private final long creationTs;
 	private Map<String, Object> metadata;
 	private long lastElementTs;
-	private long elementsCount; //user is responsible to keep this value updated
+	private long elementsCount;
 
 	public Metadata(K key, long creationTs) {
 		this.key = key;
@@ -65,7 +65,7 @@ public class Metadata<K> {
 		this.elementsCount++;
 	}
 
-	public void decElmentsCount() {
+	public void decElementsCount() {
 		this.elementsCount--;
 	}
 
@@ -73,7 +73,7 @@ public class Metadata<K> {
 		this.elementsCount = this.elementsCount + value;
 	}
 
-	public void decElmentsCount(long value) {
+	public void decElementsCount(long value) {
 		this.elementsCount = this.elementsCount - value;
 	}
 }

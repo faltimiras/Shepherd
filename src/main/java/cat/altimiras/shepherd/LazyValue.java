@@ -6,7 +6,7 @@ import java.util.List;
 
 public class LazyValue<K, V> {
 
-	private ValuesStorage<K,V, ?> storage;
+	private ValuesStorage<K, V, ?> storage;
 	private K key;
 
 	public LazyValue(ValuesStorage storage, K key) {

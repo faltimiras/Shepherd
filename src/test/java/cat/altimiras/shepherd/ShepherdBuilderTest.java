@@ -31,15 +31,6 @@ public class ShepherdBuilderTest {
 	}
 
 	@Test(expected = NullPointerException.class)
-	public void nullKeyExtractor() throws Exception {
-		ShepherdBuilder.create()
-				.basic(
-						null,
-						Optional.empty(), (a) -> {
-						});
-	}
-
-	@Test(expected = NullPointerException.class)
 	public void nullCallback() throws Exception {
 		ShepherdBuilder.create()
 				.basic(

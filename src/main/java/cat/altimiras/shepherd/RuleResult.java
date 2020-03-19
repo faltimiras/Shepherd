@@ -1,6 +1,7 @@
 package cat.altimiras.shepherd;
 
 import java.util.List;
+
 public class RuleResult<V> {
 
 	private boolean canGroup;
@@ -68,74 +69,74 @@ public class RuleResult<V> {
 		this.discard = discard;
 	}
 
-	public static RuleResult groupAndKeep(List<Object> group, List<Object> toKeep) {
+	public static <V> RuleResult<V> groupAndKeep(List<V> group, List<V> toKeep) {
 
-		RuleResult ruleResult = RuleResultPool.borrow();
+		RuleResult<V> ruleResult = RuleResultPool.borrow();
 		ruleResult.build(true, 0, 0, group, toKeep);
 		return ruleResult;
 	}
 
-	public static RuleResult groupAndDiscard(List<Object> group) {
-		RuleResult ruleResult = RuleResultPool.borrow();
+	public static <V> RuleResult<V> groupAndDiscard(List<V> group) {
+		RuleResult<V> ruleResult = RuleResultPool.borrow();
 		ruleResult.build(true, 0, 1, group, null);
 		return ruleResult;
 	}
 
-	public static RuleResult groupAllAndDiscard() {
-		RuleResult ruleResult = RuleResultPool.borrow();
+	public static <V> RuleResult<V> groupAllAndDiscard() {
+		RuleResult<V> ruleResult = RuleResultPool.borrow();
 		ruleResult.build(true, 0, 1, null, null);
 		return ruleResult;
 	}
 
-	public static RuleResult groupAndAppend() {
-		RuleResult ruleResult = RuleResultPool.borrow();
-		ruleResult.build(true, 1, 0,null, null);
+	public static <V> RuleResult<V> groupAndAppend() {
+		RuleResult<V> ruleResult = RuleResultPool.borrow();
+		ruleResult.build(true, 1, 0, null, null);
 		return ruleResult;
 	}
 
-	public static RuleResult discardAndAppendAndGroup() {
-		RuleResult ruleResult = RuleResultPool.borrow();
-		ruleResult.build(true, -1, -1,null, null);
+	public static <V> RuleResult<V> discardAndAppendAndGroup() {
+		RuleResult<V> ruleResult = RuleResultPool.borrow();
+		ruleResult.build(true, -1, -1, null, null);
 		return ruleResult;
 	}
 
-	public static RuleResult appendAndGroup() {
-		RuleResult ruleResult = RuleResultPool.borrow();
-		ruleResult.build(true, -1, 0,null, null);
+	public static <V> RuleResult<V> appendAndGroup() {
+		RuleResult<V> ruleResult = RuleResultPool.borrow();
+		ruleResult.build(true, -1, 0, null, null);
 		return ruleResult;
 	}
 
-	public static RuleResult appendAndGroupAndDiscard() {
-		RuleResult ruleResult = RuleResultPool.borrow();
-		ruleResult.build(true, -1, 1,null, null);
+	public static <V> RuleResult<V> appendAndGroupAndDiscard() {
+		RuleResult<V> ruleResult = RuleResultPool.borrow();
+		ruleResult.build(true, -1, 1, null, null);
 		return ruleResult;
 	}
 
-	public static RuleResult notGroupAndKeep(List<Object> toKeep) {
-		RuleResult ruleResult = RuleResultPool.borrow();
-		ruleResult.build(false, 0,0, null, toKeep);
+	public static <V> RuleResult<V> notGroupAndKeep(List<V> toKeep) {
+		RuleResult<V> ruleResult = RuleResultPool.borrow();
+		ruleResult.build(false, 0, 0, null, toKeep);
 		return ruleResult;
 	}
 
-	public static RuleResult notGroupAndAppend() {
+	public static <V> RuleResult<V> notGroupAndAppend() {
 
-		RuleResult ruleResult = RuleResultPool.borrow();
-		ruleResult.build(false, 1, 0,null, null);
+		RuleResult<V> ruleResult = RuleResultPool.borrow();
+		ruleResult.build(false, 1, 0, null, null);
 		return ruleResult;
 	}
 
-	public static RuleResult notGroup() {
+	public static <V> RuleResult<V> notGroup() {
 
-		RuleResult ruleResult = RuleResultPool.borrow();
-		ruleResult.build(false, 0, 0,null, null);
+		RuleResult<V> ruleResult = RuleResultPool.borrow();
+		ruleResult.build(false, 0, 0, null, null);
 		return ruleResult;
 	}
 
 
-	public static RuleResult notGroupAndDiscardAll() {
+	public static <V> RuleResult<V> notGroupAndDiscardAll() {
 
-		RuleResult ruleResult = RuleResultPool.borrow();
-		ruleResult.build(false, 0, -1,null, null);
+		RuleResult<V> ruleResult = RuleResultPool.borrow();
+		ruleResult.build(false, 0, -1, null, null);
 		return ruleResult;
 	}
 }

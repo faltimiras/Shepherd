@@ -10,11 +10,11 @@ public class BaseCollector<T> implements Consumer<T> {
 	final protected LinkedBlockingDeque<T> results;
 
 	public BaseCollector(int maxSize) {
-		results = new LinkedBlockingDeque<T>(maxSize);
+		results = new LinkedBlockingDeque(maxSize);
 	}
 
 	public BaseCollector() {
-		results = new LinkedBlockingDeque<T>();
+		results = new LinkedBlockingDeque();
 	}
 
 	public List<T> get() {
@@ -42,6 +42,4 @@ public class BaseCollector<T> implements Consumer<T> {
 	public void accept(T t) {
 		results.add(t);
 	}
-
-
 }

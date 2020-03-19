@@ -14,13 +14,14 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class ShepherdSync<T, S> extends ShepherdBase<T, S> {
+@SuppressWarnings({"unchecked", "rawtypes"})
+public class ShepherdSync<K, V, S> extends ShepherdBase<K, V, S> {
 
 	protected static final Logger log = LoggerFactory.getLogger(ShepherdSync.class);
 
-	private final QueueConsumer<T, S> consumer;
+	private final QueueConsumer<K, V, S> consumer;
 
-	ShepherdSync(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, Function keyExtractor, List<Rule<S>> rules, RuleExecutor<T> ruleExecutor, Consumer<S> callback, Optional<ShepherdBuilder.Dog> dog, Optional<ShepherdBuilder.Monitoring> monitoring) {
+	ShepherdSync(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, Function keyExtractor, List<Rule<S>> rules, RuleExecutor<V> ruleExecutor, Consumer<S> callback, Optional<ShepherdBuilder.Dog> dog, Optional<ShepherdBuilder.Monitoring> monitoring) {
 
 		super(keyExtractor, callback, ruleExecutor, 1, dog.isPresent(), monitoring);
 
@@ -35,11 +36,11 @@ public class ShepherdSync<T, S> extends ShepherdBase<T, S> {
 	}
 
 	@Override
-	public boolean add(Object key, T t, long timestamp) {
+	public boolean add(K key, V t, long timestamp) {
 		try {
 			if (key == null) {
 				log.error("Extracted key == null, discarding object");
-				log.info("Element discarded {0}", t);
+				log.info("Element discarded {}", t);
 				return false;
 			} else {
 				this.consumer.consume(new InputValue(t, key, timestamp));
@@ -52,14 +53,14 @@ public class ShepherdSync<T, S> extends ShepherdBase<T, S> {
 	}
 
 	@Override
-	public boolean add(Object key, T t) {
-		return add(key,t, -1);
+	public boolean add(K key, V t) {
+		return add(key, t, -1);
 	}
 
 	@Override
-	public boolean add(T t, long timestamp) {
+	public boolean add(V t, long timestamp) {
 		try {
-			Object key = keyExtractor.apply(t);
+			K key = keyExtractor.apply(t);
 			return add(key, t, timestamp);
 		} catch (Exception e) {
 			log.error("Error adding element", e);
@@ -68,7 +69,7 @@ public class ShepherdSync<T, S> extends ShepherdBase<T, S> {
 	}
 
 	@Override
-	public boolean add(T t) {
+	public boolean add(V t) {
 		return add(t, -1);
 	}
 

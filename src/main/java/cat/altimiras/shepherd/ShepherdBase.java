@@ -1,34 +1,25 @@
 package cat.altimiras.shepherd;
 
 import cat.altimiras.shepherd.consumer.DogConsumer;
-import cat.altimiras.shepherd.monitoring.debug.ElementDebugSerializer;
-import cat.altimiras.shepherd.monitoring.Level;
-import cat.altimiras.shepherd.monitoring.Stats;
-import cat.altimiras.shepherd.monitoring.StatsListener;
-import cat.altimiras.shepherd.monitoring.metric.Metric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-abstract class ShepherdBase<T,S> implements Shepherd<T> {
+@SuppressWarnings({"unchecked", "rawtypes"})
+abstract class ShepherdBase<K,V, S> implements Shepherd<K,V> {
 
 	protected static final Logger log = LoggerFactory.getLogger(ShepherdBase.class);
 
-	protected final Function keyExtractor;
+	protected final Function<Object, K> keyExtractor;
 
 	protected final Consumer<S> callback;
 
-	protected final RuleExecutor<T> ruleExecutor;
+	protected final RuleExecutor<V> ruleExecutor;
 
 	//private final ScheduledExecutorService statPool;
 
@@ -39,7 +30,7 @@ abstract class ShepherdBase<T,S> implements Shepherd<T> {
 	protected final List<QueueConsumer> consumers;
 
 
-	public ShepherdBase(Function keyExtractor,  Consumer<S> callback, RuleExecutor<T> ruleExecutor, int numConsumers, boolean hasDog, Optional<ShepherdBuilder.Monitoring> monitoring) {
+	public ShepherdBase(Function keyExtractor, Consumer<S> callback, RuleExecutor<V> ruleExecutor, int numConsumers, boolean hasDog, Optional<ShepherdBuilder.Monitoring> monitoring) {
 		this.keyExtractor = keyExtractor;
 		this.callback = callback;
 		this.ruleExecutor = ruleExecutor;
@@ -64,16 +55,14 @@ abstract class ShepherdBase<T,S> implements Shepherd<T> {
 	}
 
 
-
 	public void forceTimeout() {
 		forceTimeout(false);
 	}
 
 	public void forceTimeout(boolean force) {
 		if (hasDog) {
-			consumers.stream().forEach((c -> ((DogConsumer)c).checkTimeouts(force)));
-		}
-		else {
+			consumers.forEach((c -> ((DogConsumer) c).checkTimeouts(force)));
+		} else {
 			log.info("Ignoring force timeouts. As no dog is configured");
 		}
 	}

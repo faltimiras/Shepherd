@@ -2,20 +2,20 @@ package cat.altimiras.shepherd;
 
 import java.time.Clock;
 
-public class InputValue<T> {
+public class InputValue<K,T> {
 
-	private static final Clock clock = Clock.systemUTC();
+	final private static Clock clock = Clock.systemUTC();
 	private final T value;
-	private final Object key;
+	private final K key;
 	private final long ingestionTs;
 
-	public InputValue(T value, Object key) {
+	public InputValue(T value, K key) {
 		this.value = value;
 		this.key = key;
 		this.ingestionTs = clock.millis();
 	}
 
-	public InputValue(T value, Object key, long ingestionTs) {
+	public InputValue(T value, K key, long ingestionTs) {
 		this.value = value;
 		this.key = key;
 		if (ingestionTs == -1) {
@@ -33,7 +33,7 @@ public class InputValue<T> {
 		return ingestionTs;
 	}
 
-	public Object getKey() {
+	public K getKey() {
 		return key;
 	}
 }

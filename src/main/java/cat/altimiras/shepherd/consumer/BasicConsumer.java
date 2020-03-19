@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Consumer;
 
-public class BasicConsumer<T, S> extends QueueConsumer<T, S> {
+public class BasicConsumer<K, V, S> extends QueueConsumer<K, V, S> {
 
-	public BasicConsumer(MetadataStorage metadataStorage, ValuesStorage valuesStorage, List<Rule<T>> rules, BlockingQueue<InputValue<T>> queue, RuleExecutor<T> ruleExecutor, Consumer<S> callback) {
+	public BasicConsumer(MetadataStorage<K> metadataStorage, ValuesStorage<K, V, S> valuesStorage, List<Rule<V>> rules, BlockingQueue<InputValue<K, V>> queue, RuleExecutor<V> ruleExecutor, Consumer<S> callback) {
 		super(metadataStorage, valuesStorage, rules, queue, ruleExecutor, callback);
 	}
 

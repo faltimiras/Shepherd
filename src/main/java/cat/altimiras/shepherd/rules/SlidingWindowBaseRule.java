@@ -7,7 +7,7 @@ import java.time.Clock;
 import java.time.Duration;
 
 /**
- * This windows depends on creation or lastElement arrival, so every key has a different window.
+ * Sliding windows depends on creation or lastElement arrival, so every key has a different window.
  */
 public abstract class SlidingWindowBaseRule implements Rule<Object> {
 

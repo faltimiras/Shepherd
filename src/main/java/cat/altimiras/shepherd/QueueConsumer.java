@@ -7,22 +7,20 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-public abstract class QueueConsumer<T, S> implements Runnable {
+public abstract class QueueConsumer<K,T, S> implements Runnable {
 
 	protected static Logger log = LoggerFactory.getLogger(QueueConsumer.class);
 
-	protected ValuesStorage<Object, T, S> valuesStorage;
-	protected MetadataStorage<Object> metadataStorage;
+	protected ValuesStorage<K, T, S> valuesStorage;
+	protected MetadataStorage<K> metadataStorage;
 	protected final List<Rule<T>> rules;
-	protected final BlockingQueue<InputValue<T>> queue;
+	protected final BlockingQueue<InputValue<K,T>> queue;
 	protected final Consumer<S> callback;
-	protected final RuleExecutor ruleExecutor;
-	//protected final ReentrantLock storageLock = new ReentrantLock(true);
+	protected final RuleExecutor<T> ruleExecutor;
 
-	public QueueConsumer(MetadataStorage<Object> metadataStorage, ValuesStorage<Object, T, S> valuesStorage, List<Rule<T>> rules, BlockingQueue queue, RuleExecutor ruleExecutor, Consumer<S> callback) {
+	public QueueConsumer(MetadataStorage<K> metadataStorage, ValuesStorage<K, T, S> valuesStorage, List<Rule<T>> rules, BlockingQueue<InputValue<K,T>> queue, RuleExecutor<T> ruleExecutor, Consumer<S> callback) {
 		this.metadataStorage = metadataStorage;
 		this.valuesStorage = valuesStorage;
 		this.rules = rules;
@@ -31,11 +29,11 @@ public abstract class QueueConsumer<T, S> implements Runnable {
 		this.ruleExecutor = ruleExecutor;
 	}
 
-	public void consume(InputValue<T> t) {
+	public void consume(InputValue<K,T> t) {
 
 		try {
 
-			Metadata metadata = metadataStorage.get(t.getKey());
+			Metadata<K> metadata = metadataStorage.get(t.getKey());
 			if (metadata == null) {
 				metadata = new Metadata(t.getKey(), t.getIngestionTs());
 				metadataStorage.put(t.getKey(), metadata);
@@ -59,7 +57,7 @@ public abstract class QueueConsumer<T, S> implements Runnable {
 		}
 	}
 
-	protected boolean postProcess(Object key, T value, Metadata metadata, RuleResult<T> ruleResult) {
+	protected boolean postProcess(K key, T value, Metadata metadata, RuleResult<T> ruleResult) {
 
 		boolean needsToRemoveMetadataForThisKey = false;
 		if (ruleResult.getDiscard() == -1){

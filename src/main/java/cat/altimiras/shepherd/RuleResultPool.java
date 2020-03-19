@@ -3,17 +3,17 @@ package cat.altimiras.shepherd;
 import java.lang.ref.SoftReference;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class RuleResultPool {
+public class RuleResultPool<V> {
 
 	private static ConcurrentLinkedQueue<SoftReference<RuleResult>> pool = new ConcurrentLinkedQueue<>();
 
 	private RuleResultPool() {
 	}
 
-	public static RuleResult borrow() {
+	public static <V> RuleResult<V> borrow() {
 		SoftReference<RuleResult> r = pool.poll();
 		if (r == null) {
-			return new RuleResult();
+			return new RuleResult<V>();
 		}
 		return r.get();
 	}

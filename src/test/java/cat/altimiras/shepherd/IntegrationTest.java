@@ -56,7 +56,6 @@ public class IntegrationTest {
 		assertEquals(2, listCollector.size());
 		assertEquals(1, listCollector.get(1).get(0).get(0).intValue());
 		assertEquals(2, listCollector.get(1).get(0).get(0).intValue());
-
 	}
 
 	@Test
@@ -93,7 +92,6 @@ public class IntegrationTest {
 		assertEquals(2, result.get(2).size());
 		assertEquals(3, result.get(2).get(0));
 		assertEquals(3, result.get(2).get(1));
-
 	}
 
 	@Test

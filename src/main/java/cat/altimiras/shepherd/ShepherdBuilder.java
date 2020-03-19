@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class ShepherdBuilder<T, S> {
 
 	private int thread;
@@ -31,8 +32,8 @@ public class ShepherdBuilder<T, S> {
 	private DogBuilder<T> dogBuilder = null;
 	private MonitoringBuilder monitoringBuilder = null;
 	private RuleExecutor<T> ruleExecutor = new IndependentExecutor();
-	private Supplier<MetadataStorage> metadataStorageProvider = () -> new InMemoryMetadataStorage();
-	private Supplier<ValuesStorage> valuesStorageProvider = () -> new InMemoryValuesStorage();
+	private Supplier<MetadataStorage> metadataStorageProvider = InMemoryMetadataStorage::new;
+	private Supplier<ValuesStorage> valuesStorageProvider = InMemoryValuesStorage::new;
 	private List<StatsListener> statsListeners;
 
 	private ShepherdBuilder() {
@@ -53,13 +54,8 @@ public class ShepherdBuilder<T, S> {
 	public ShepherdBuilder basic(Function keyExtractor, Optional<List<Rule<S>>> rules, Consumer<S> callback) throws Exception {
 
 		this.thread = 1;
-		if (rules.isPresent()) {
-			this.rules = Collections.unmodifiableList(rules.get());
-		}
+		rules.ifPresent(ruleList -> this.rules = Collections.unmodifiableList(ruleList));
 
-		if (keyExtractor == null) {
-			throw new NullPointerException("KeyExtractor can not be null");
-		}
 		this.keyExtractor = keyExtractor;
 
 		if (callback == null) {
@@ -130,24 +126,20 @@ public class ShepherdBuilder<T, S> {
 	}
 
 	public ShepherdSync buildSync() {
-		ShepherdSync shepherd = new ShepherdSync(metadataStorageProvider, valuesStorageProvider, keyExtractor, rules, ruleExecutor, callback, Optional.empty(), Optional.empty());
-		return shepherd;
+		return new ShepherdSync(metadataStorageProvider, valuesStorageProvider, keyExtractor, rules, ruleExecutor, callback, Optional.empty(), Optional.empty());
 	}
 
 	private ShepherdSync buildSync(Optional<Dog> dog, Optional<Monitoring> monitoring) {
-		ShepherdSync shepherd = new ShepherdSync(metadataStorageProvider, valuesStorageProvider, keyExtractor, rules, ruleExecutor, callback, dog, monitoring);
-		return shepherd;
+		return new ShepherdSync(metadataStorageProvider, valuesStorageProvider, keyExtractor, rules, ruleExecutor, callback, dog, monitoring);
 	}
 
 	public ShepherdASync build() {
-		ShepherdASync shepherd = new ShepherdASync(metadataStorageProvider, valuesStorageProvider, thread, keyExtractor, rules, ruleExecutor, callback, Optional.empty(), Optional.empty());
-		return shepherd;
+		return new ShepherdASync(metadataStorageProvider, valuesStorageProvider, thread, keyExtractor, rules, ruleExecutor, callback, Optional.empty(), Optional.empty());
 	}
 
 	private ShepherdASync build(Optional<Dog> dog, Optional<Monitoring> monitoring) {
 
-		ShepherdASync shepherd = new ShepherdASync(metadataStorageProvider, valuesStorageProvider, thread, keyExtractor, rules, ruleExecutor, callback, dog, monitoring);
-		return shepherd;
+		return new ShepherdASync(metadataStorageProvider, valuesStorageProvider, thread, keyExtractor, rules, ruleExecutor, callback, dog, monitoring);
 	}
 
 	public static class DogBuilder<T> {

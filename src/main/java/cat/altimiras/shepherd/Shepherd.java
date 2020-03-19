@@ -1,19 +1,18 @@
 package cat.altimiras.shepherd;
 
-public interface Shepherd<T> {
+public interface Shepherd<K,V> {
 
-	boolean add(T t, long timestamp);
+	boolean add(V t, long timestamp);
 
-	boolean add(T t);
+	boolean add(V t);
 
-	boolean add(Object key, T t, long timestamp);
+	boolean add(K key, V t, long timestamp);
 
-	boolean add(Object key, T t);
+	boolean add(K key, V t);
 
 	void forceTimeout();
 
 	void forceTimeout(boolean force);
 
 	void stop(boolean forceTimeout);
-
 }

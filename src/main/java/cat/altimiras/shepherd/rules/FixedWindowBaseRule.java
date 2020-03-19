@@ -31,7 +31,6 @@ public abstract class FixedWindowBaseRule implements Rule<Object> {
 		return false;
 	}
 
-
 	protected boolean isWindowOpen() {
 		return !isWindowExpired();
 	}

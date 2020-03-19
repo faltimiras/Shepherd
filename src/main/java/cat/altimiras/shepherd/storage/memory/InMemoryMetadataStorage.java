@@ -10,10 +10,10 @@ import java.util.Map;
 public class InMemoryMetadataStorage<K> implements MetadataStorage<K> {
 
 	//order of insertion is important
-	private Map<K, Metadata> storage = new LinkedHashMap<>();
+	private Map<K, Metadata<K>> storage = new LinkedHashMap<>();
 
 	@Override
-	public void put(K key, Metadata metadata) {
+	public void put(K key, Metadata<K> metadata) {
 		storage.put(key, metadata);
 	}
 
@@ -23,12 +23,12 @@ public class InMemoryMetadataStorage<K> implements MetadataStorage<K> {
 	}
 
 	@Override
-	public Metadata get(K key) {
+	public Metadata<K> get(K key) {
 		return storage.get(key);
 	}
 
 	@Override
-	public Iterator<Metadata> values() {
+	public Iterator<Metadata<K>> values() {
 		return storage.values().iterator();
 	}
 }

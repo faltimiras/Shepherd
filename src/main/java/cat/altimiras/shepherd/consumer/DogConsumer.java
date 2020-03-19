@@ -19,15 +19,15 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public class DogConsumer<T, S> extends QueueConsumer<T, S> {
+public class DogConsumer<K, V, S> extends QueueConsumer<K, V, S> {
 
 	private final Scheduler scheduler;
-	private final List<Rule<T>> rulesTimeout;
+	private final List<Rule<V>> rulesTimeout;
 	private final long precision;
 	private final Clock clock;
-	private final RuleExecutor<T> ruleExecutorTimeout;
+	private final RuleExecutor<V> ruleExecutorTimeout;
 
-	public DogConsumer(MetadataStorage metadataStorage, ValuesStorage valuesStorage, List<Rule<T>> rules, RuleExecutor<T> ruleExecutor, BlockingQueue<InputValue<T>> queue, Scheduler scheduler, List<Rule<T>> rulesTimeout, Duration precision, Clock clock, RuleExecutor<T> ruleTimeoutExecutor, Consumer<S> callback) {
+	public DogConsumer(MetadataStorage<K> metadataStorage, ValuesStorage<K, V, S> valuesStorage, List<Rule<V>> rules, RuleExecutor<V> ruleExecutor, BlockingQueue<InputValue<K, V>> queue, Scheduler scheduler, List<Rule<V>> rulesTimeout, Duration precision, Clock clock, RuleExecutor<V> ruleTimeoutExecutor, Consumer<S> callback) {
 		super(metadataStorage, valuesStorage, rules, queue, ruleExecutor, callback);
 		this.scheduler = scheduler;
 		this.rulesTimeout = rulesTimeout;
@@ -66,7 +66,7 @@ public class DogConsumer<T, S> extends QueueConsumer<T, S> {
 			}
 		} catch (InterruptedException e) {
 			//nothing to do
-		} catch (Exception e){
+		} catch (Exception e) {
 			log.error("Error executing shepherd", e);
 			e.printStackTrace();
 		}
@@ -74,39 +74,32 @@ public class DogConsumer<T, S> extends QueueConsumer<T, S> {
 
 	public void checkTimeouts(boolean force) {
 
-		//storageLock.lock();
-		try {
+		log.debug("Dog gonna run for timeouts");
 
-			log.debug("Dog gonna run for timeouts");
+		Iterator<Metadata<K>> it = metadataStorage.values();
 
-			Iterator<Metadata> it = metadataStorage.values();
+		long now = clock.millis();
 
-			long now = clock.millis();
+		boolean stop = false;
+		while (it.hasNext() && !stop) {
+			Metadata<K> metadata = it.next();
+			long diff = now - metadata.getCreationTs();
 
-			boolean stop = false;
-			while (it.hasNext() && !stop) {
-				Metadata metadata = it.next();
-				long diff = now - metadata.getCreationTs();
+			if (force || (diff - precision) > 0) {
+				RuleResult<V> ruleResult = ruleExecutorTimeout.execute(metadata, null, new LazyValue(valuesStorage, metadata.getKey()), rulesTimeout);
 
-				if (force || (diff - precision) > 0) {
-					RuleResult<T> ruleResult = ruleExecutorTimeout.execute(metadata, null, new LazyValue(valuesStorage, metadata.getKey()), rulesTimeout);
-
-					boolean needsToRemoveMetadataForThisKey = postProcess(metadata.getKey(), null, metadata, ruleResult);
-					if (needsToRemoveMetadataForThisKey){
-						it.remove();
-					}
-
-				} else {
-					stop = true; //elements are ordered by creation time. Make no sense to continue if one is not older, next one wont be
+				boolean needsToRemoveMetadataForThisKey = postProcess(metadata.getKey(), null, metadata, ruleResult);
+				if (needsToRemoveMetadataForThisKey) {
+					it.remove();
 				}
-			}
 
-			if (scheduler != null) {
-				scheduler.justExecuted();
+			} else {
+				stop = true; //elements are ordered by creation time. Make no sense to continue if one is not older, next one wont be
 			}
+		}
 
-		} finally {
-			//storageLock.unlock();
+		if (scheduler != null) {
+			scheduler.justExecuted();
 		}
 	}
 }

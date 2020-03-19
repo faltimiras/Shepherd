@@ -18,17 +18,18 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class ShepherdASync<T, S> extends ShepherdBase<T, S> {
+@SuppressWarnings({"unchecked", "rawtypes"})
+public class ShepherdASync<K,V, S> extends ShepherdBase<K,V, S> {
 
 	protected static final Logger log = LoggerFactory.getLogger(ShepherdASync.class);
 
-	private final LinkedBlockingQueue<InputValue<T>>[] queues;
+	private final LinkedBlockingQueue<InputValue<K,V>>[] queues;
 
 	private final ExecutorService pool;
 
 	private final int threads;
 
-	ShepherdASync(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, int thread, Function keyExtractor, List<Rule<S>> rules, RuleExecutor<T> ruleExecutor, Consumer<S> callback, Optional<ShepherdBuilder.Dog> dog, Optional<ShepherdBuilder.Monitoring> monitoring) {
+	ShepherdASync(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, int thread, Function keyExtractor, List<Rule<S>> rules, RuleExecutor<V> ruleExecutor, Consumer<S> callback, Optional<ShepherdBuilder.Dog> dog, Optional<ShepherdBuilder.Monitoring> monitoring) {
 
 		super(keyExtractor, callback, ruleExecutor, thread, dog.isPresent(), monitoring);
 
@@ -56,7 +57,6 @@ public class ShepherdASync<T, S> extends ShepherdBase<T, S> {
 
 	private QueueConsumer getAsyncConsumer(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, List<Rule<S>> rules, Optional<ShepherdBuilder.Dog> dog, int index) {
 		if (dog.isPresent()) {
-
 			return new DogConsumer(
 					metadataStorageProvider.get(),
 					valuesStorageProvider.get(),
@@ -81,9 +81,9 @@ public class ShepherdASync<T, S> extends ShepherdBase<T, S> {
 	}
 
 	@Override
-	public boolean add(T t, long timestamp) {
+	public boolean add(V t, long timestamp) {
 		try {
-			Object key = keyExtractor.apply(t);
+			K key = keyExtractor.apply(t);
 			return add(key, t, timestamp);
 		} catch (Exception e) {
 			log.error("Error adding element", e);
@@ -92,7 +92,7 @@ public class ShepherdASync<T, S> extends ShepherdBase<T, S> {
 	}
 
 	@Override
-	public boolean add(Object key, T t, long timestamp) {
+	public boolean add(K key, V t, long timestamp) {
 		try {
 			if (key == null) {
 				log.error("Extracted key == null, discarding object");
@@ -116,12 +116,12 @@ public class ShepherdASync<T, S> extends ShepherdBase<T, S> {
 	}
 
 	@Override
-	public boolean add(Object key, T t) {
+	public boolean add(K key, V t) {
 		return add(key, t, -1);
 	}
 
 	@Override
-	public boolean add(T t) {
+	public boolean add(V t) {
 		return add(t, -1);
 	}
 
@@ -135,12 +135,11 @@ public class ShepherdASync<T, S> extends ShepherdBase<T, S> {
 
 	public boolean areQueuesEmpty() {
 
-		for (int i = 0; i < queues.length; i++) {
-			if (!queues[i].isEmpty()) {
+		for (LinkedBlockingQueue<InputValue<K,V>> queue : queues) {
+			if (!queue.isEmpty()) {
 				return false;
 			}
 		}
 		return true;
 	}
-
 }

@@ -6,15 +6,15 @@ import java.util.Iterator;
 
 public interface MetadataStorage<K> {
 
-	void put(K key, Metadata metadata);
+	void put(K key, Metadata<K> metadata);
 
 	void remove(K key);
 
-	Metadata get(K key);
+	Metadata<K> get(K key);
 
 	/**
 	 * Metadata elements must be provided in Oreder by ASC creationTime
 	 * @return
 	 */
-	Iterator<Metadata> values();
+	Iterator<Metadata<K>> values();
 }
