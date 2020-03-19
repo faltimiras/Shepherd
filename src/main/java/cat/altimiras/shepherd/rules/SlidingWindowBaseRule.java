@@ -4,6 +4,7 @@ import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.Rule;
 
 import java.time.Clock;
+import java.time.Duration;
 
 /**
  * This windows depends on creation or lastElement arrival, so every key has a different window.
@@ -13,8 +14,8 @@ public abstract class SlidingWindowBaseRule implements Rule<Object> {
 	final private long window;
 	final private Clock clock;
 
-	public SlidingWindowBaseRule(long window, Clock clock) {
-		this.window = window;
+	public SlidingWindowBaseRule(Duration window, Clock clock) {
+		this.window = window.toMillis();
 		this.clock = clock;
 	}
 

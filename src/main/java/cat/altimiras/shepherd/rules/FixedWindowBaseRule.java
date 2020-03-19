@@ -1,6 +1,5 @@
 package cat.altimiras.shepherd.rules;
 
-import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.Rule;
 
 import java.time.Clock;
@@ -22,11 +21,7 @@ public abstract class FixedWindowBaseRule implements Rule<Object> {
 		endCurrentOpenWindow = nextEnd();
 	}
 
-	/**
-	 * @param metadata
-	 * @return
-	 */
-	protected boolean isWindowExpired(Metadata metadata) {
+	protected boolean isWindowExpired() {
 
 		long now = clock.millis();
 		if (now >= endCurrentOpenWindow) {
@@ -37,8 +32,8 @@ public abstract class FixedWindowBaseRule implements Rule<Object> {
 	}
 
 
-	protected boolean isWindowOpen(Metadata metadata) {
-		return !isWindowExpired(metadata);
+	protected boolean isWindowOpen() {
+		return !isWindowExpired();
 	}
 
 	long getEndCurrentOpenWindow() {

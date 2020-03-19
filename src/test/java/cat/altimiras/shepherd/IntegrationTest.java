@@ -4,8 +4,8 @@ import cat.altimiras.shepherd.callback.FileCollector;
 import cat.altimiras.shepherd.callback.ListCollector;
 import cat.altimiras.shepherd.rules.AccumulateNRule;
 import cat.altimiras.shepherd.rules.AccumulateRule;
-import cat.altimiras.shepherd.rules.DiscardAllExpiredRuleSliding;
-import cat.altimiras.shepherd.rules.GroupAllExpiredRuleSliding;
+import cat.altimiras.shepherd.rules.DiscardAllExpiredRule;
+import cat.altimiras.shepherd.rules.GroupAllExpiredRule;
 import cat.altimiras.shepherd.rules.NoDuplicatesRule;
 import cat.altimiras.shepherd.rules.keyextractors.SameKeyExtractor;
 import cat.altimiras.shepherd.rules.keyextractors.SimpleKeyExtractor;
@@ -183,7 +183,7 @@ public class IntegrationTest {
 				.threads(1)
 				.withDog(
 						Duration.ofMillis(10),
-						Collections.singletonList(new DiscardAllExpiredRuleSliding(50, false)))
+						Collections.singletonList(new DiscardAllExpiredRule(Duration.ofMillis(50), false)))
 				.build();
 
 		shepherd.add(1);
@@ -212,7 +212,7 @@ public class IntegrationTest {
 				.threads(1)
 				.withDog(
 						Duration.ofMillis(10),
-						Collections.singletonList(new GroupAllExpiredRuleSliding(100, false)))
+						Collections.singletonList(new GroupAllExpiredRule(Duration.ofMillis(100), false)))
 				.build();
 
 		shepherd.add("lolo");
@@ -243,7 +243,7 @@ public class IntegrationTest {
 				.withValuesStorageProvider(FileValuesStorage::new)
 				.withDog(
 						Duration.ofMillis(10),
-						Collections.singletonList(new GroupAllExpiredRuleSliding(1000, false)))
+						Collections.singletonList(new GroupAllExpiredRule(Duration.ofMillis(1000), false)))
 				.build();
 
 		shepherd.add("lolo");
@@ -273,7 +273,7 @@ public class IntegrationTest {
 				.withValuesStorageProvider(RedisValuesStorage::new)
 				.withDog(
 						Duration.ofMillis(10),
-						Collections.singletonList(new GroupAllExpiredRuleSliding(1000, false)))
+						Collections.singletonList(new GroupAllExpiredRule(Duration.ofMillis(1000), false)))
 				.build();
 
 		shepherd.add("lolo");
