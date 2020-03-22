@@ -2,7 +2,7 @@ package cat.altimiras.shepherd;
 
 import java.time.Clock;
 
-public class InputValue<K,T> {
+public class InputValue<K, T> {
 
 	final private static Clock clock = Clock.systemUTC();
 	private final T value;
@@ -18,11 +18,7 @@ public class InputValue<K,T> {
 	public InputValue(T value, K key, long ingestionTs) {
 		this.value = value;
 		this.key = key;
-		if (ingestionTs == -1) {
-			this.ingestionTs = clock.millis();
-		} else {
-			this.ingestionTs = ingestionTs;
-		}
+		this.ingestionTs = ingestionTs;
 	}
 
 	public T getValue() {

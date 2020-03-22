@@ -10,7 +10,7 @@ import java.util.List;
 public class GroupAllRule implements Rule<Object> {
 
 	@Override
-	public RuleResult canGroup(Metadata metadata, Object value, LazyValue lazyValue) {
+	public RuleResult canClose(Metadata metadata, Object value, LazyValue lazyValue) {
 		return RuleResult.groupAllAndDiscard();
 	}
 }

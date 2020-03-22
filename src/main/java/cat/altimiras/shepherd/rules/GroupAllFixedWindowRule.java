@@ -9,17 +9,18 @@ import java.time.Duration;
 
 public class GroupAllFixedWindowRule extends FixedWindowBaseRule {
 
-	final private boolean fromLastElement;
+	GroupAllFixedWindowRule(Duration window, Clock clock) {
+		super(window, clock);
+	}
 
-	public GroupAllFixedWindowRule(Duration window, boolean fromLastElement) {
+	public GroupAllFixedWindowRule(Duration window) {
 		super(window, Clock.systemUTC());
-		this.fromLastElement = fromLastElement;
 	}
 
 	@Override
-	public RuleResult canGroup(Metadata metadata, Object value, LazyValue<?, Object> lazyValue) {
+	public RuleResult canClose(Metadata metadata, LazyValue<Object, Object> lazyValue) {
 
-		if(isWindowExpired()){
+		if (isWindowExpired()) {
 			return RuleResult.groupAllAndDiscard();
 		}
 		return RuleResult.notGroup();

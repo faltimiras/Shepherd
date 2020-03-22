@@ -2,8 +2,6 @@ package cat.altimiras.shepherd.storage.redis;
 
 import cat.altimiras.shepherd.storage.ValuesStorage;
 import cat.altimiras.shepherd.storage.serdes.BasicSerializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
@@ -12,8 +10,6 @@ import java.util.List;
 import java.util.function.Function;
 
 public class RedisValuesStorage implements ValuesStorage<Object, Object, String> {
-
-	protected static Logger log = LoggerFactory.getLogger(RedisValuesStorage.class);
 
 	//Serializers
 	final private Function<Object, String> keySerializer;
@@ -77,5 +73,9 @@ public class RedisValuesStorage implements ValuesStorage<Object, Object, String>
 	@Override
 	public String publish(Object key) {
 		return jedis.get(keySerializer.apply(key));
+	}
+
+	Jedis getJedis() {
+		return jedis;
 	}
 }

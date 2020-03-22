@@ -8,7 +8,7 @@ import cat.altimiras.shepherd.RuleResult;
 public class NoDuplicatesRule implements Rule<Object> {
 
 	@Override
-	public RuleResult canGroup(Metadata metadata, Object value, LazyValue<?, Object> lazyValue) {
+	public RuleResult canClose(Metadata metadata, Object value, LazyValue<?, Object> lazyValue) {
 
 		long present = metadata.getElementsCount();
 		if (present == 0) {

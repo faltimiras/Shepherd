@@ -22,7 +22,7 @@ public class DiscardAllExpiredRule extends SlidingWindowBaseRule {
 	}
 
 	@Override
-	public RuleResult canGroup(Metadata metadata, Object value, LazyValue<?, Object> lazyValue) {
+	public RuleResult canClose(Metadata metadata, LazyValue<Object, Object> lazyValue) {
 
 		if (isWindowExpired(metadata, fromLastElement)) {
 			return RuleResult.notGroupAndDiscardAll();

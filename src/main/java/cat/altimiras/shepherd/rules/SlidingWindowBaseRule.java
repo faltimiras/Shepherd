@@ -1,7 +1,7 @@
 package cat.altimiras.shepherd.rules;
 
 import cat.altimiras.shepherd.Metadata;
-import cat.altimiras.shepherd.Rule;
+import cat.altimiras.shepherd.RuleWindow;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -9,14 +9,10 @@ import java.time.Duration;
 /**
  * Sliding windows depends on creation or lastElement arrival, so every key has a different window.
  */
-public abstract class SlidingWindowBaseRule implements Rule<Object> {
-
-	final private long window;
-	final private Clock clock;
+public abstract class SlidingWindowBaseRule extends WindowBaseRule implements RuleWindow<Object> {
 
 	public SlidingWindowBaseRule(Duration window, Clock clock) {
-		this.window = window.toMillis();
-		this.clock = clock;
+		super(window, clock);
 	}
 
 	/**
@@ -28,7 +24,7 @@ public abstract class SlidingWindowBaseRule implements Rule<Object> {
 
 		long timeReference = fromLastElement ? metadata.getLastElementTs() : metadata.getCreationTs();
 		long now = clock.millis();
-		if (now > timeReference + window) {
+		if (now > timeReference + windowInMillis) {
 			return true;
 		}
 		return false;
@@ -45,4 +41,15 @@ public abstract class SlidingWindowBaseRule implements Rule<Object> {
 	protected boolean isWindowOpen(Metadata metadata) {
 		return !isWindowExpired(metadata, false);
 	}
+
+	@Override
+	final public boolean isSliding() {
+		return true;
+	}
+
+	@Override
+	public WindowKey adaptKey(Object key, long eventTs) {
+		return new WindowKey(key,0);
+	}
+
 }

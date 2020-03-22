@@ -8,7 +8,7 @@ import cat.altimiras.shepherd.RuleResult;
 public class DiscardAllRule implements Rule<Object> {
 
 	@Override
-	public RuleResult canGroup(Metadata metadata, Object value, LazyValue lazyValue) {
+	public RuleResult canClose(Metadata metadata, Object value, LazyValue lazyValue) {
 		return RuleResult.notGroupAndDiscardAll();
 	}
 }

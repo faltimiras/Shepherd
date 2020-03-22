@@ -1,6 +1,7 @@
 package cat.altimiras.shepherd.rules;
 
-import cat.altimiras.shepherd.Rule;
+import cat.altimiras.shepherd.RuleWindow;
+import cat.altimiras.shepherd.Window;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -9,23 +10,30 @@ import java.time.Duration;
  * Fixed window is not related to element added to the system, it depends on UTC.
  * Creating windows starting and closing at "o'clock"
  */
-public abstract class FixedWindowBaseRule implements Rule<Object> {
+public abstract class FixedWindowBaseRule extends WindowBaseRule implements RuleWindow<Object> {
 
-	final private Duration window;
-	final private Clock clock;
 	private long endCurrentOpenWindow;
 
 	public FixedWindowBaseRule(Duration window, Clock clock) {
-		this.window = window;
-		this.clock = clock;
-		endCurrentOpenWindow = nextEnd();
+		super(window, clock);
+		this.endCurrentOpenWindow = calculateWindow(clock.millis());
+	}
+
+	@Override
+	final public boolean isSliding() {
+		return false;
+	}
+
+	@Override
+	final public WindowKey adaptKey(Object key, long eventTs) {
+		return new WindowKey(key, calculateWindow(eventTs));
 	}
 
 	protected boolean isWindowExpired() {
 
 		long now = clock.millis();
 		if (now >= endCurrentOpenWindow) {
-			endCurrentOpenWindow = nextEnd();
+			endCurrentOpenWindow = calculateWindow(clock.millis());
 			return true;
 		}
 		return false;
@@ -39,11 +47,8 @@ public abstract class FixedWindowBaseRule implements Rule<Object> {
 		return endCurrentOpenWindow;
 	}
 
-	private long nextEnd() {
-
-		long now = clock.millis();
-		long millis = window.toMillis();
-		long mod = now % millis;
-		return now + millis - mod;
+	private long calculateWindow(long instant){
+		long mod = instant % windowInMillis;
+		return instant + windowInMillis - mod;
 	}
 }

@@ -1,5 +1,7 @@
 package cat.altimiras.shepherd.scheduler;
 
+import cat.altimiras.shepherd.Metrics;
+
 public interface Scheduler {
 
 	/**
@@ -12,7 +14,7 @@ public interface Scheduler {
 	 *
 	 * @return
 	 */
-	long calculateWaitingTime(long lastRuleExecutionDurationMs);
+	long calculateWaitingTime(Metrics metrics);
 
 	/**
 	 * Tells to scheduler that dog just has ran

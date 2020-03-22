@@ -12,7 +12,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class FixedWindowBaseRuleTest {
+public class FixedWindowRuleTest {
 
 	@Test
 	public void niceMinute() throws Exception {
@@ -20,9 +20,9 @@ public class FixedWindowBaseRuleTest {
 		Clock clock = mock(Clock.class);
 		when(clock.millis()).thenReturn(1584616414116l); //Thu Mar 19 2020 11:13:34
 
-		FixedWindowRule dummyFixedWindowRule = new FixedWindowRule(Duration.ofMinutes(5), clock);
+		GroupAllFixedWindowRule groupAllFixedWindowRule = new GroupAllFixedWindowRule(Duration.ofMinutes(5), clock);
 
-		long end = dummyFixedWindowRule.getEndCurrentOpenWindow();
+		long end = groupAllFixedWindowRule.getEndCurrentOpenWindow();
 		assertEquals(1584616500000l, end); //Thu Mar 19 2020 11:15:00
 	}
 
@@ -32,9 +32,9 @@ public class FixedWindowBaseRuleTest {
 		Clock clock = mock(Clock.class);
 		when(clock.millis()).thenReturn(1584616500000l);  //Thu Mar 19 2020 11:15:00
 
-		FixedWindowRule dummyFixedWindowRule = new FixedWindowRule(Duration.ofMinutes(5), clock);
+		GroupAllFixedWindowRule groupAllFixedWindowRule = new GroupAllFixedWindowRule(Duration.ofMinutes(5), clock);
 
-		long end = dummyFixedWindowRule.getEndCurrentOpenWindow();
+		long end = groupAllFixedWindowRule.getEndCurrentOpenWindow();
 		assertEquals(1584616800000l, end); //Thu Mar 19 2020 11:12:00
 	}
 
@@ -44,9 +44,9 @@ public class FixedWindowBaseRuleTest {
 		Clock clock = mock(Clock.class);
 		when(clock.millis()).thenReturn(1584617575123l);  //Thu Mar 19 2020 12:32:55:123
 
-		FixedWindowRule dummyFixedWindowRule = new FixedWindowRule(Duration.ofMillis(50), clock);
+		GroupAllFixedWindowRule groupAllFixedWindowRule = new GroupAllFixedWindowRule(Duration.ofMillis(50), clock);
 
-		long end = dummyFixedWindowRule.getEndCurrentOpenWindow();
+		long end = groupAllFixedWindowRule.getEndCurrentOpenWindow();
 		assertEquals(1584617575150l, end); //Thu Mar 19 2020 12:32:55:150
 	}
 
@@ -56,21 +56,9 @@ public class FixedWindowBaseRuleTest {
 		Clock clock = mock(Clock.class);
 		when(clock.millis()).thenReturn(1584617575123l);  //Thu Mar 19 2020 12:32:55:123
 
-		FixedWindowRule dummyFixedWindowRule = new FixedWindowRule(Duration.ofHours(2), clock);
+		GroupAllFixedWindowRule groupAllFixedWindowRule = new GroupAllFixedWindowRule(Duration.ofHours(2), clock);
 
-		long end = dummyFixedWindowRule.getEndCurrentOpenWindow();
+		long end = groupAllFixedWindowRule.getEndCurrentOpenWindow();
 		assertEquals(1584619200000l, end); //Thu Mar 19 2020 12:00:00
-	}
-
-	private class FixedWindowRule extends FixedWindowBaseRule {
-
-		public FixedWindowRule(Duration window, Clock clock) {
-			super(window, clock);
-		}
-
-		@Override
-		public RuleResult canGroup(Metadata metadata, Object value, LazyValue<?, Object> lazyValue) {
-			return null;
-		}
 	}
 }

@@ -3,6 +3,7 @@ package cat.altimiras.shepherd.storage.memory;
 import cat.altimiras.shepherd.storage.ValuesStorage;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,11 +39,15 @@ public class InMemoryValuesStorage<K, V> implements ValuesStorage<K, V, List<V>>
 
 	@Override
 	public List<V> get(K key) {
-		return storage.get(key);
+		return Collections.unmodifiableList(storage.get(key));
 	}
 
 	@Override
 	public List<V> publish(K key) {
 		return storage.get(key);
+	}
+
+	Map<K, List<V>> getStorage() {
+		return storage;
 	}
 }

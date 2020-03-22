@@ -4,7 +4,7 @@ import java.util.List;
 
 public class RuleResult<V> {
 
-	private boolean canGroup;
+	private boolean canClose;
 	private int append; //-1: append first, 0: not append, 1 append at the end
 	private int discard; //-1: discard before, 0 : not discard, 1 discard at the end
 	protected List<V> group; //group output
@@ -14,7 +14,7 @@ public class RuleResult<V> {
 	}
 
 	private void build(boolean canGroup, int append, int discard, List<V> group, List<V> toKeep) {
-		this.canGroup = canGroup;
+		this.canClose = canGroup;
 		this.group = group;
 		this.toKeep = toKeep;
 		this.append = append;
@@ -22,15 +22,15 @@ public class RuleResult<V> {
 	}
 
 	void reset() {
-		this.canGroup = false;
+		this.canClose = false;
 		this.group = null;
 		this.toKeep = null;
 		this.append = 0;
 		this.discard = 0;
 	}
 
-	void setCanGroup(boolean canGroup) {
-		this.canGroup = canGroup;
+	void setCanClose(boolean canClose) {
+		this.canClose = canClose;
 	}
 
 	void setAppend(int append) {
@@ -45,8 +45,8 @@ public class RuleResult<V> {
 		this.toKeep = toKeep;
 	}
 
-	public boolean canGroup() {
-		return canGroup;
+	public boolean canClose() {
+		return canClose;
 	}
 
 	public int getAppend() {

@@ -40,6 +40,8 @@ public class BaseCollector<T> implements Consumer<T> {
 
 	@Override
 	public void accept(T t) {
-		results.add(t);
+		if (t != null) {
+			results.add(t);
+		}
 	}
 }

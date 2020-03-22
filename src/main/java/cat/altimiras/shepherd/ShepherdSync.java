@@ -1,7 +1,7 @@
 package cat.altimiras.shepherd;
 
 import cat.altimiras.shepherd.consumer.BasicConsumer;
-import cat.altimiras.shepherd.consumer.DogConsumer;
+import cat.altimiras.shepherd.consumer.WindowedConsumer;
 import cat.altimiras.shepherd.storage.MetadataStorage;
 import cat.altimiras.shepherd.storage.ValuesStorage;
 import org.slf4j.Logger;
@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -21,18 +20,17 @@ public class ShepherdSync<K, V, S> extends ShepherdBase<K, V, S> {
 
 	private final QueueConsumer<K, V, S> consumer;
 
-	ShepherdSync(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, Function keyExtractor, List<Rule<S>> rules, RuleExecutor<V> ruleExecutor, Consumer<S> callback, Optional<ShepherdBuilder.Dog> dog, Optional<ShepherdBuilder.Monitoring> monitoring) {
+	ShepherdSync(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, Function keyExtractor, List<Rule<S>> rules, RuleExecutor<V> ruleExecutor, Consumer<S> callback, Window window, Metrics metrics, Clock clock) {
 
-		super(keyExtractor, callback, ruleExecutor, 1, dog.isPresent(), monitoring);
+		super(keyExtractor, callback, ruleExecutor, 1, window != null, metrics, clock);
 
-		if (dog.isPresent()) {
-			this.consumer = new DogConsumer(metadataStorageProvider.get(), valuesStorageProvider.get(), rules, this.ruleExecutor, null, null, dog.get().getRulesTimeout(), dog.get().getPrecision(), Clock.systemUTC(), dog.get().getRuleExecutor(), this.callback);
+		if (window != null) {
+			this.consumer = new WindowedConsumer(metadataStorageProvider.get(), valuesStorageProvider.get(), rules, this.ruleExecutor, null, null, window.getRule(), window.getPrecision(), clock, this.callback, metrics);
 		} else {
-			this.consumer = new BasicConsumer(metadataStorageProvider.get(), valuesStorageProvider.get(), rules, null, this.ruleExecutor, this.callback);
+			this.consumer = new BasicConsumer(metadataStorageProvider.get(), valuesStorageProvider.get(), rules, null, this.ruleExecutor, this.callback, metrics);
 		}
 
 		this.consumers.add(consumer);
-
 	}
 
 	@Override
@@ -44,6 +42,7 @@ public class ShepherdSync<K, V, S> extends ShepherdBase<K, V, S> {
 				return false;
 			} else {
 				this.consumer.consume(new InputValue(t, key, timestamp));
+				metrics.pendingInc();
 			}
 			return true;
 		} catch (Exception e) {
@@ -70,13 +69,13 @@ public class ShepherdSync<K, V, S> extends ShepherdBase<K, V, S> {
 
 	@Override
 	public boolean add(V t) {
-		return add(t, -1);
+		return add(t, System.currentTimeMillis());
 	}
 
 	@Override
 	public void stop(boolean forceTimeout) {
 		if (forceTimeout) {
-			this.forceTimeout(true);
+			this.forceTimeout();
 		}
 	}
 }

@@ -21,9 +21,9 @@ public class BasicSchedulerTest {
 
 		BasicScheduler basicScheduler = new BasicScheduler(clock, Duration.ofMillis(10));
 
-		long t = basicScheduler.calculateWaitingTime(0l);
+		long t = basicScheduler.calculateWaitingTime(null);
 		assertEquals(10, t); //first execution is always the precision  time
-		long t2 = basicScheduler.calculateWaitingTime(0l);
+		long t2 = basicScheduler.calculateWaitingTime(null);
 		assertEquals(0, t2); //first execution is always the precision  time
 	}
 
@@ -38,9 +38,9 @@ public class BasicSchedulerTest {
 
 		BasicScheduler basicScheduler = new BasicScheduler(clock, Duration.ofMillis(10));
 
-		long t = basicScheduler.calculateWaitingTime(0l);
+		long t = basicScheduler.calculateWaitingTime(null);
 		assertEquals(10, t); //first execution is always the precision  time
-		long t2 = basicScheduler.calculateWaitingTime(0l);
+		long t2 = basicScheduler.calculateWaitingTime(null);
 		assertEquals(5, t2);
 	}
 }

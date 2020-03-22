@@ -19,7 +19,7 @@ public class AccumulateNRule implements Rule<Object> {
 	}
 
 	@Override
-	public RuleResult canGroup(Metadata metadata, Object value, LazyValue<?, Object> lazyValue) {
+	public RuleResult canClose(Metadata metadata, Object value, LazyValue<?, Object> lazyValue) {
 
 		long count = metadata.getElementsCount();
 		if (count == 0) {

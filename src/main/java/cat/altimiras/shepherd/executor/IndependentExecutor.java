@@ -23,8 +23,8 @@ public class IndependentExecutor<T, S> implements RuleExecutor<T> {
 
 		RuleResult result = null;
 		for (Rule rule : rules) {
-			result = rule.canGroup(metadata, newValue, lazyValue);
-			if (result.canGroup()) {
+			result = rule.canClose(metadata, newValue, lazyValue);
+			if (result.canClose()) {
 				return result;
 			}
 		}

@@ -4,6 +4,7 @@ import cat.altimiras.shepherd.Metadata;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  *

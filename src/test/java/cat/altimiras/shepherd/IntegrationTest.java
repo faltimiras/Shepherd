@@ -6,6 +6,7 @@ import cat.altimiras.shepherd.rules.AccumulateNRule;
 import cat.altimiras.shepherd.rules.AccumulateRule;
 import cat.altimiras.shepherd.rules.DiscardAllExpiredRule;
 import cat.altimiras.shepherd.rules.GroupAllExpiredRule;
+import cat.altimiras.shepherd.rules.GroupAllFixedWindowRule;
 import cat.altimiras.shepherd.rules.NoDuplicatesRule;
 import cat.altimiras.shepherd.rules.keyextractors.SameKeyExtractor;
 import cat.altimiras.shepherd.rules.keyextractors.SimpleKeyExtractor;
@@ -14,10 +15,13 @@ import cat.altimiras.shepherd.storage.redis.RedisValuesStorage;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -169,7 +173,7 @@ public class IntegrationTest {
 	}
 
 	@Test
-	public void noRepeatsInWindows() throws Exception {
+	public void noRepeatsInSlidingWindows() throws Exception {
 
 		ListCollector listCollector = new ListCollector();
 
@@ -179,9 +183,9 @@ public class IntegrationTest {
 						Optional.of(Collections.singletonList(new NoDuplicatesRule())),
 						listCollector)
 				.threads(1)
-				.withDog(
+				.withWindow(
 						Duration.ofMillis(10),
-						Collections.singletonList(new DiscardAllExpiredRule(Duration.ofMillis(50), false)))
+						new DiscardAllExpiredRule(Duration.ofMillis(50), false))
 				.build();
 
 		shepherd.add(1);
@@ -198,7 +202,7 @@ public class IntegrationTest {
 	}
 
 	@Test
-	public void accumulateWindows() throws Exception {
+	public void accumulateSlidingWindows() throws Exception {
 
 		ListCollector listCollector = new ListCollector();
 
@@ -208,27 +212,28 @@ public class IntegrationTest {
 						Optional.empty(),
 						listCollector)
 				.threads(1)
-				.withDog(
+				.withWindow(
 						Duration.ofMillis(10),
-						Collections.singletonList(new GroupAllExpiredRule(Duration.ofMillis(100), false)))
+						new GroupAllExpiredRule(Duration.ofMillis(100), false))
 				.build();
 
+		shepherd.add("lele");
 		shepherd.add("lolo");
 		shepherd.add("lala");
-		shepherd.add("lele");
 		Thread.sleep(50);
 
 		await().atMost(1, SECONDS).until(shepherd::areQueuesEmpty);
 
 		assertEquals(3, listCollector.size());
 		List<List<String>> result = listCollector.get();
-		assertEquals("lolo", result.get(0).get(0));
-		assertEquals("lala", result.get(1).get(0));
-		assertEquals("lele", result.get(2).get(0));
+		Collections.sort(result, Comparator.comparing(strings -> strings.get(0))); //order is not deterministic
+		assertEquals("lala", result.get(0).get(0));
+		assertEquals("lele", result.get(1).get(0));
+		assertEquals("lolo", result.get(2).get(0));
 	}
 
 	@Test
-	public void accumulateContentWindowsInFile() throws Exception {
+	public void accumulateContentSlidingWindowsInFile() throws Exception {
 
 		FileCollector fileCollector = new FileCollector();
 
@@ -239,9 +244,9 @@ public class IntegrationTest {
 						fileCollector)
 				.threads(1)
 				.withValuesStorageProvider(FileValuesStorage::new)
-				.withDog(
+				.withWindow(
 						Duration.ofMillis(10),
-						Collections.singletonList(new GroupAllExpiredRule(Duration.ofMillis(1000), false)))
+						new GroupAllExpiredRule(Duration.ofMillis(1000), false))
 				.build();
 
 		shepherd.add("lolo");
@@ -255,10 +260,13 @@ public class IntegrationTest {
 		assertEquals(1, result.size());
 
 		assertEquals("lololalalele", new String(Files.readAllBytes(result.get(0))));
+
+		//release resources
+		deleteDir();
 	}
 
 	@Test
-	public void accumulateContentWindowsInRedis() throws Exception {
+	public void accumulateContentSlidingWindowsInRedis() throws Exception {
 
 		ListCollector binaryCollector = new ListCollector();
 
@@ -269,9 +277,9 @@ public class IntegrationTest {
 						binaryCollector)
 				.threads(1)
 				.withValuesStorageProvider(RedisValuesStorage::new)
-				.withDog(
+				.withWindow(
 						Duration.ofMillis(10),
-						Collections.singletonList(new GroupAllExpiredRule(Duration.ofMillis(1000), false)))
+						new GroupAllExpiredRule(Duration.ofMillis(1000), false))
 				.build();
 
 		shepherd.add("lolo");
@@ -285,5 +293,51 @@ public class IntegrationTest {
 		assertEquals(1, result.size());
 
 		assertEquals("lololalalele", result.get(0));
+	}
+
+	@Test
+	public void accumulateFixedWindowInMemory() throws Exception {
+
+		ListCollector listCollector = new ListCollector();
+
+		ShepherdASync shepherd = ShepherdBuilder.create()
+				.basic(
+						new SameKeyExtractor(),
+						Optional.empty(),
+						listCollector)
+				.threads(1)
+				.withWindow(
+						Duration.ofMillis(10),
+						new GroupAllFixedWindowRule(Duration.ofMillis(100)))
+				.build();
+
+		shepherd.add("lolo", 0);
+		shepherd.add("lala", 10);
+		shepherd.add("lele", 110);
+		Thread.sleep(250);
+
+		List<List<String>> result = listCollector.get();
+		Collections.sort(result, Comparator.comparing(list -> list.size()));
+		assertEquals(2, result.size());
+		assertEquals(1, result.get(0).size());
+		assertEquals("lele", result.get(0).get(0));
+		assertEquals(2, result.get(1).size());
+		assertEquals("lolo", result.get(1).get(0));
+		assertEquals("lala", result.get(1).get(1));
+	}
+
+	private void deleteDir(){
+		deleteDir(Paths.get(System.getProperty("java.io.tmpdir"), "shepherd"));
+	}
+
+	private void deleteDir(Path path) {
+		try {
+			Files.walk(path)
+					.sorted(Comparator.reverseOrder())
+					.map(Path::toFile)
+					.forEach(File::delete);
+		} catch (Exception e) {
+			//nothing to do
+		}
 	}
 }

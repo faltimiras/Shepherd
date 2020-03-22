@@ -13,8 +13,6 @@ import java.util.function.Function;
 
 public class RedisListValuesStorage implements ValuesStorage<Object, Object, List<String>> {
 
-	protected static Logger log = LoggerFactory.getLogger(RedisListValuesStorage.class);
-
 	//Serializers
 	final private Function<Object, String> keySerializer;
 	final private Function<Object,String > valueSerializer;
@@ -77,5 +75,9 @@ public class RedisListValuesStorage implements ValuesStorage<Object, Object, Lis
 	@Override
 	public List<String> publish(Object key) {
 		return jedis.lrange(keySerializer.apply(key), 0l, Long.MAX_VALUE);
+	}
+
+	Jedis getJedis() {
+		return jedis;
 	}
 }

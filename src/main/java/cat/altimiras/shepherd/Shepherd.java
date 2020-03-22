@@ -12,7 +12,5 @@ public interface Shepherd<K,V> {
 
 	void forceTimeout();
 
-	void forceTimeout(boolean force);
-
 	void stop(boolean forceTimeout);
 }

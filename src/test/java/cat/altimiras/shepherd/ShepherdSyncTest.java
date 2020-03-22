@@ -1,6 +1,7 @@
 package cat.altimiras.shepherd;
 
 import cat.altimiras.shepherd.callback.ListCollector;
+import com.codahale.metrics.CsvReporter;
 import org.junit.Test;
 
 import java.util.Optional;
@@ -14,7 +15,7 @@ import static org.mockito.Mockito.when;
 public class ShepherdSyncTest {
 
 	@Test
-	public void addNull() throws Exception{
+	public void addNull() throws Exception {
 		Object o = new Object();
 		Function keyExtractor = mock(Function.class);
 		when(keyExtractor.apply(o)).thenReturn(null);
@@ -30,7 +31,7 @@ public class ShepherdSyncTest {
 	}
 
 	@Test
-	public void add() throws Exception{
+	public void add() throws Exception {
 		Object o = new Object();
 		Function keyExtractor = mock(Function.class);
 		when(keyExtractor.apply(o)).thenReturn(o);

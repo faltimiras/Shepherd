@@ -1,5 +1,7 @@
 package cat.altimiras.shepherd.scheduler;
 
+import cat.altimiras.shepherd.Metrics;
+
 import java.time.Clock;
 import java.time.Duration;
 
@@ -18,7 +20,7 @@ public class BasicScheduler implements Scheduler {
 	}
 
 	@Override
-	public long calculateWaitingTime(long lastExecutionDurationMs) {
+	public long calculateWaitingTime(Metrics metrics) {
 		if (firstTime) {
 			firstTime = false;
 			return maxTime;
