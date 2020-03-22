@@ -2,12 +2,12 @@ package cat.altimiras.shepherd;
 
 import cat.altimiras.shepherd.callback.FileCollector;
 import cat.altimiras.shepherd.callback.ListCollector;
-import cat.altimiras.shepherd.rules.AccumulateNRule;
-import cat.altimiras.shepherd.rules.AccumulateRule;
-import cat.altimiras.shepherd.rules.DiscardAllExpiredRule;
-import cat.altimiras.shepherd.rules.GroupAllExpiredRule;
-import cat.altimiras.shepherd.rules.GroupAllFixedWindowRule;
-import cat.altimiras.shepherd.rules.NoDuplicatesRule;
+import cat.altimiras.shepherd.rules.streaming.AccumulateNRule;
+import cat.altimiras.shepherd.rules.streaming.AccumulateRule;
+import cat.altimiras.shepherd.rules.window.DiscardAllExpiredRule;
+import cat.altimiras.shepherd.rules.window.GroupAllExpiredRule;
+import cat.altimiras.shepherd.rules.window.GroupAllFixedWindowRule;
+import cat.altimiras.shepherd.rules.streaming.NoDuplicatesRule;
 import cat.altimiras.shepherd.rules.keyextractors.SameKeyExtractor;
 import cat.altimiras.shepherd.rules.keyextractors.SimpleKeyExtractor;
 import cat.altimiras.shepherd.storage.file.FileValuesStorage;

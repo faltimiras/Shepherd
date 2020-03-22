@@ -5,10 +5,10 @@ import cat.altimiras.shepherd.LazyValue;
 import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.Metrics;
 import cat.altimiras.shepherd.QueueConsumer;
-import cat.altimiras.shepherd.Rule;
+import cat.altimiras.shepherd.rules.Rule;
 import cat.altimiras.shepherd.RuleExecutor;
 import cat.altimiras.shepherd.RuleResult;
-import cat.altimiras.shepherd.RuleWindow;
+import cat.altimiras.shepherd.rules.RuleWindow;
 import cat.altimiras.shepherd.scheduler.Scheduler;
 import cat.altimiras.shepherd.storage.MetadataStorage;
 import cat.altimiras.shepherd.storage.ValuesStorage;
@@ -39,7 +39,6 @@ public class WindowedConsumer<K, V, S> extends QueueConsumer<K, V, S> {
 	@Override
 	public void run() {
 		try {
-
 			if (scheduler != null) {
 				while (true) {
 					process();

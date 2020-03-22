@@ -1,5 +1,6 @@
 package cat.altimiras.shepherd;
 
+import cat.altimiras.shepherd.rules.Rule;
 import cat.altimiras.shepherd.storage.MetadataStorage;
 import cat.altimiras.shepherd.storage.ValuesStorage;
 import org.slf4j.Logger;

@@ -1,11 +1,9 @@
-package cat.altimiras.shepherd.rules;
+package cat.altimiras.shepherd.rules.streaming;
 
 import cat.altimiras.shepherd.LazyValue;
 import cat.altimiras.shepherd.Metadata;
-import cat.altimiras.shepherd.Rule;
+import cat.altimiras.shepherd.rules.Rule;
 import cat.altimiras.shepherd.RuleResult;
-
-import java.util.List;
 
 public class GroupAllRule implements Rule<Object> {
 

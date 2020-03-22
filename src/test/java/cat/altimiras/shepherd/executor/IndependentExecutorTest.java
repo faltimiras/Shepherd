@@ -1,21 +1,11 @@
 package cat.altimiras.shepherd.executor;
 
-import cat.altimiras.shepherd.Rule;
-import cat.altimiras.shepherd.RuleResult;
-import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.List;
-
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class IndependentExecutorTest {
 /*

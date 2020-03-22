@@ -1,6 +1,6 @@
-package cat.altimiras.shepherd.rules;
+package cat.altimiras.shepherd.rules.window;
 
-import cat.altimiras.shepherd.RuleWindow;
+import cat.altimiras.shepherd.rules.RuleWindow;
 
 import java.time.Clock;
 import java.time.Duration;

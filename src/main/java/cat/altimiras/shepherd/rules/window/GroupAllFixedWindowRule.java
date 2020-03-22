@@ -1,8 +1,9 @@
-package cat.altimiras.shepherd.rules;
+package cat.altimiras.shepherd.rules.window;
 
 import cat.altimiras.shepherd.LazyValue;
 import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.RuleResult;
+import cat.altimiras.shepherd.rules.window.FixedWindowBaseRule;
 
 import java.time.Clock;
 import java.time.Duration;

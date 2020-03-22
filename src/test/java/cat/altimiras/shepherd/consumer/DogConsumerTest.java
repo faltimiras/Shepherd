@@ -1,20 +1,5 @@
 package cat.altimiras.shepherd.consumer;
 
-import cat.altimiras.shepherd.Rule;
-import cat.altimiras.shepherd.RuleExecutor;
-import cat.altimiras.shepherd.RuleResult;
-import cat.altimiras.shepherd.scheduler.Scheduler;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.function.Consumer;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -22,10 +7,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class DogConsumerTest {
 /*

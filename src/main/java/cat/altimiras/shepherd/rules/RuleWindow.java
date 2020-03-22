@@ -1,4 +1,8 @@
-package cat.altimiras.shepherd;
+package cat.altimiras.shepherd.rules;
+
+import cat.altimiras.shepherd.LazyValue;
+import cat.altimiras.shepherd.Metadata;
+import cat.altimiras.shepherd.RuleResult;
 
 import java.time.Duration;
 import java.util.Objects;

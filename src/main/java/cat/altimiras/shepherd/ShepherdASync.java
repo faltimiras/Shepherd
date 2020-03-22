@@ -2,6 +2,7 @@ package cat.altimiras.shepherd;
 
 import cat.altimiras.shepherd.consumer.BasicConsumer;
 import cat.altimiras.shepherd.consumer.WindowedConsumer;
+import cat.altimiras.shepherd.rules.Rule;
 import cat.altimiras.shepherd.scheduler.Scheduler;
 import cat.altimiras.shepherd.storage.MetadataStorage;
 import cat.altimiras.shepherd.storage.ValuesStorage;

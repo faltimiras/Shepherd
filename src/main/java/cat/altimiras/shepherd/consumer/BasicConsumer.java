@@ -3,7 +3,7 @@ package cat.altimiras.shepherd.consumer;
 import cat.altimiras.shepherd.InputValue;
 import cat.altimiras.shepherd.Metrics;
 import cat.altimiras.shepherd.QueueConsumer;
-import cat.altimiras.shepherd.Rule;
+import cat.altimiras.shepherd.rules.Rule;
 import cat.altimiras.shepherd.RuleExecutor;
 import cat.altimiras.shepherd.storage.MetadataStorage;
 import cat.altimiras.shepherd.storage.ValuesStorage;

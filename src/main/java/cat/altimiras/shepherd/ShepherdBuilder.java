@@ -1,6 +1,8 @@
 package cat.altimiras.shepherd;
 
 import cat.altimiras.shepherd.executor.IndependentExecutor;
+import cat.altimiras.shepherd.rules.Rule;
+import cat.altimiras.shepherd.rules.RuleWindow;
 import cat.altimiras.shepherd.scheduler.Scheduler;
 import cat.altimiras.shepherd.storage.MetadataStorage;
 import cat.altimiras.shepherd.storage.ValuesStorage;
@@ -84,7 +86,6 @@ public class ShepherdBuilder<T, S> {
 		return this;
 	}
 
-
 	public ShepherdBuilder threads(int thread) {
 		if (thread < 1) {
 			throw new IllegalArgumentException("threads must be bigger than 0");
@@ -106,9 +107,9 @@ public class ShepherdBuilder<T, S> {
 		return this;
 	}
 
-
 	public ShepherdSync buildSync() {
-		return new ShepherdSync(metadataStorageProvider, valuesStorageProvider, keyExtractor, rules, ruleExecutor, callback, windowBuilder.buildWindow(), new Metrics(metrics), clock);
+		Window window = windowBuilder == null ? null : windowBuilder.buildWindow();
+		return new ShepherdSync(metadataStorageProvider, valuesStorageProvider, keyExtractor, rules, ruleExecutor, callback, window, new Metrics(metrics), clock);
 	}
 
 	private ShepherdSync buildSync(Window window) {
@@ -131,7 +132,6 @@ public class ShepherdBuilder<T, S> {
 		private Duration precision;
 		private Supplier<Scheduler> schedulerProvider;
 
-
 		public WindowBuilder(ShepherdBuilder shepherdBuilder, Duration precision, RuleWindow ruleWindow) {
 			this.shepherdBuilder = shepherdBuilder;
 
@@ -146,7 +146,6 @@ public class ShepherdBuilder<T, S> {
 			}
 			this.precision = precision;
 		}
-
 
 		public WindowBuilder setSchedulerProvider(Supplier<Scheduler> schedulerProvider) {
 			if (schedulerProvider == null) {
@@ -169,5 +168,4 @@ public class ShepherdBuilder<T, S> {
 			return this.shepherdBuilder.buildSync(new Window(rule, precision, schedulerProvider));
 		}
 	}
-
 }

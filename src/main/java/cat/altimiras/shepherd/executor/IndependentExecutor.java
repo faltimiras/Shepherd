@@ -3,7 +3,7 @@ package cat.altimiras.shepherd.executor;
 
 import cat.altimiras.shepherd.LazyValue;
 import cat.altimiras.shepherd.Metadata;
-import cat.altimiras.shepherd.Rule;
+import cat.altimiras.shepherd.rules.Rule;
 import cat.altimiras.shepherd.RuleExecutor;
 import cat.altimiras.shepherd.RuleResult;
 

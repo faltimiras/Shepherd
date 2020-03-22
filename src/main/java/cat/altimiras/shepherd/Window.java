@@ -1,5 +1,6 @@
 package cat.altimiras.shepherd;
 
+import cat.altimiras.shepherd.rules.RuleWindow;
 import cat.altimiras.shepherd.scheduler.BasicScheduler;
 import cat.altimiras.shepherd.scheduler.Scheduler;
 
