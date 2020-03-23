@@ -34,4 +34,6 @@ public class Window<T> {
 	public Supplier<Scheduler> getSchedulerProvider() {
 		return schedulerProvider;
 	}
+
+
 }

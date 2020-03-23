@@ -2,8 +2,8 @@ package cat.altimiras.shepherd.rules.streaming;
 
 import cat.altimiras.shepherd.LazyValue;
 import cat.altimiras.shepherd.Metadata;
-import cat.altimiras.shepherd.rules.Rule;
 import cat.altimiras.shepherd.RuleResult;
+import cat.altimiras.shepherd.rules.Rule;
 
 public class AccumulateNRule implements Rule<Object> {
 
@@ -23,7 +23,7 @@ public class AccumulateNRule implements Rule<Object> {
 		if (count == 0) {
 			return RuleResult.notGroupAndAppend();
 		} else {
-			if (count == limit -1) {
+			if (count == limit - 1) {
 				return RuleResult.appendAndGroupAndDiscard();
 			} else {
 				return RuleResult.notGroupAndAppend();

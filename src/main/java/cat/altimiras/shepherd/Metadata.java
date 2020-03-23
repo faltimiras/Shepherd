@@ -45,6 +45,12 @@ public class Metadata<K> {
 		}
 	}
 
+	public void removeAll() {
+		if (this.metadata != null) {
+			this.metadata.clear();
+		}
+	}
+
 	public Object get(String key) {
 		if (this.metadata == null) {
 			return null;
@@ -75,5 +81,9 @@ public class Metadata<K> {
 
 	public void decElementsCount(long value) {
 		this.elementsCount = this.elementsCount - value;
+	}
+
+	public void resetElementsCount(){
+		this.elementsCount = 0;
 	}
 }

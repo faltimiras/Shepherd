@@ -2,8 +2,6 @@ package cat.altimiras.shepherd.storage.redis;
 
 import cat.altimiras.shepherd.storage.ValuesStorage;
 import cat.altimiras.shepherd.storage.serdes.BasicSerializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
@@ -15,7 +13,7 @@ public class RedisListValuesStorage implements ValuesStorage<Object, Object, Lis
 
 	//Serializers
 	final private Function<Object, String> keySerializer;
-	final private Function<Object,String > valueSerializer;
+	final private Function<Object, String> valueSerializer;
 
 	final private Jedis jedis;
 

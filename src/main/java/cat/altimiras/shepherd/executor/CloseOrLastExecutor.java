@@ -3,20 +3,19 @@ package cat.altimiras.shepherd.executor;
 
 import cat.altimiras.shepherd.LazyValue;
 import cat.altimiras.shepherd.Metadata;
-import cat.altimiras.shepherd.rules.Rule;
 import cat.altimiras.shepherd.RuleExecutor;
 import cat.altimiras.shepherd.RuleResult;
+import cat.altimiras.shepherd.rules.Rule;
 
 import java.util.List;
 
 /**
- * Every rule gets same values.
- * Stops at first rule that returns a canGroup
- * If any rule can not group, keeps values returned by last executed rule
+ * Stops at first rule that returns a canClose
+ * If any rule can not group, keeps/discard/append values returned by last executed rule
  *
  * @param <T>
  */
-public class IndependentExecutor<T, S> implements RuleExecutor<T> {
+public class CloseOrLastExecutor<T, S> implements RuleExecutor<T> {
 
 	@Override
 	public RuleResult<T> execute(Metadata metadata, T newValue, LazyValue lazyValue, List<Rule<T>> rules) {

@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RuleResultPool<V> {
 
-	private static ConcurrentLinkedQueue<SoftReference<RuleResult>> pool = new ConcurrentLinkedQueue<>();
+	final private static ConcurrentLinkedQueue<SoftReference<RuleResult>> pool = new ConcurrentLinkedQueue<>();
 
 	private RuleResultPool() {
 	}

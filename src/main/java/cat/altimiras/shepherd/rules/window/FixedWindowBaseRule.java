@@ -18,6 +18,11 @@ public abstract class FixedWindowBaseRule extends WindowBaseRule implements Rule
 		this.endCurrentOpenWindow = calculateWindow(clock.millis());
 	}
 
+	private long calculateWindow(long instant) {
+		long mod = instant % windowInMillis;
+		return instant + windowInMillis - mod;
+	}
+
 	@Override
 	final public boolean isSliding() {
 		return false;
@@ -26,6 +31,10 @@ public abstract class FixedWindowBaseRule extends WindowBaseRule implements Rule
 	@Override
 	final public WindowKey adaptKey(Object key, long eventTs) {
 		return new WindowKey(key, calculateWindow(eventTs));
+	}
+
+	protected boolean isWindowOpen() {
+		return !isWindowExpired();
 	}
 
 	protected boolean isWindowExpired() {
@@ -38,16 +47,7 @@ public abstract class FixedWindowBaseRule extends WindowBaseRule implements Rule
 		return false;
 	}
 
-	protected boolean isWindowOpen() {
-		return !isWindowExpired();
-	}
-
 	long getEndCurrentOpenWindow() {
 		return endCurrentOpenWindow;
-	}
-
-	private long calculateWindow(long instant){
-		long mod = instant % windowInMillis;
-		return instant + windowInMillis - mod;
 	}
 }

@@ -1,8 +1,7 @@
 package cat.altimiras.shepherd.storage.file;
 
-import cat.altimiras.shepherd.storage.serdes.BasicBinarySerializer;
-import cat.altimiras.shepherd.storage.serdes.BasicSerializer;
 import cat.altimiras.shepherd.storage.ValuesStorage;
+import cat.altimiras.shepherd.storage.serdes.BasicBinarySerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +17,7 @@ import java.util.function.Function;
 
 /**
  * Store values in the file system.
- *
+ * <p>
  * This storage NEVER remove the file created, it is user responsability do something with it
  *
  * @param <K>
@@ -34,14 +33,14 @@ public class FileValuesStorage<K, V> implements ValuesStorage<K, V, Path> {
 
 	private Map<K, Path> storage = new HashMap<>();
 
-	public FileValuesStorage(Path storageBaseDir, Function serializer, byte[] separator){
+	public FileValuesStorage(Path storageBaseDir, Function serializer, byte[] separator) {
 		this.storageBaseDir = storageBaseDir;
 		this.serializer = serializer;
 		this.separator = separator;
 
 		try {
 			Files.createDirectories(this.storageBaseDir);
-		} catch (Exception e){
+		} catch (Exception e) {
 			log.error("Error creating dir structure ", e);
 		}
 	}
@@ -52,7 +51,7 @@ public class FileValuesStorage<K, V> implements ValuesStorage<K, V, Path> {
 		this.separator = new byte[]{};
 		try {
 			Files.createDirectories(this.storageBaseDir);
-		} catch (Exception e){
+		} catch (Exception e) {
 			log.error("Error creating dir structure ", e);
 		}
 	}
@@ -77,6 +76,16 @@ public class FileValuesStorage<K, V> implements ValuesStorage<K, V, Path> {
 			log.error("Error appending value to the file {} ", e);
 			throw new RuntimeException("Error storing value", e);
 		}
+	}
+
+	@Override
+	public void remove(K key) {
+		storage.remove(key);
+	}
+
+	@Override
+	public List<V> get(K key) {
+		throw new UnsupportedOperationException("File storage do not support it. Hint: If you needed you can code your own FileStorage");
 	}
 
 	@Override
@@ -106,16 +115,6 @@ public class FileValuesStorage<K, V> implements ValuesStorage<K, V, Path> {
 			log.error("Error appending value to the file {} ", e);
 			throw new RuntimeException("Error storing value", e);
 		}
-	}
-
-	@Override
-	public void remove(K key) {
-		storage.remove(key);
-	}
-
-	@Override
-	public List<V> get(K key) {
-		throw new UnsupportedOperationException("File storage do not support it. Hint: If you needed you can code your own FileStorage");
 	}
 
 	@Override

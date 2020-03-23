@@ -19,24 +19,21 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class ShepherdASync<K,V, S> extends ShepherdBase<K,V, S> {
+public class ShepherdASync<K, V, S> extends ShepherdBase<K, V, S> {
 
 	protected static final Logger log = LoggerFactory.getLogger(ShepherdASync.class);
 
-	private final LinkedBlockingQueue<InputValue<K,V>>[] queues;
+	private final LinkedBlockingQueue<InputValue<K, V>>[] queues;
 	private final ExecutorService pool;
 	private final int threads;
-	private final Window window;
-
 
 	ShepherdASync(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, int thread, Function keyExtractor, List<Rule<S>> rules, RuleExecutor<V> ruleExecutor, Consumer<S> callback, Window window, Metrics metrics, Clock clock) {
 
-		super(keyExtractor, callback, ruleExecutor, thread, window!=null, metrics, clock);
+		super(keyExtractor, callback, ruleExecutor, thread, window, metrics, clock);
 
 		this.threads = thread;
 		this.queues = new LinkedBlockingQueue[thread];
 		this.pool = Executors.newFixedThreadPool(thread);
-		this.window = window;
 
 		initializeQueues();
 		startConsumers(metadataStorageProvider, valuesStorageProvider, rules, window);
@@ -64,10 +61,8 @@ public class ShepherdASync<K,V, S> extends ShepherdBase<K,V, S> {
 					rules,
 					this.ruleExecutor,
 					this.queues[index],
-					(Scheduler)window.getSchedulerProvider().get(),
+					(Scheduler) window.getSchedulerProvider().get(),
 					window.getRule(),
-					window.getPrecision(),
-					Clock.systemUTC(),
 					this.callback,
 					metrics);
 		} else {
@@ -82,7 +77,15 @@ public class ShepherdASync<K,V, S> extends ShepherdBase<K,V, S> {
 		}
 	}
 
-	@Override
+	public boolean areQueuesEmpty() {
+
+		for (LinkedBlockingQueue<InputValue<K, V>> queue : queues) {
+			if (!queue.isEmpty()) {
+				return false;
+			}
+		}
+		return true;
+	}	@Override
 	public boolean add(V t, long timestamp) {
 		try {
 			K key = keyExtractor.apply(t);
@@ -101,13 +104,11 @@ public class ShepherdASync<K,V, S> extends ShepherdBase<K,V, S> {
 				log.info("Element discarded {}", t);
 				return false;
 			} else {
-				//TODO sync i window te sentit?¿?
 				InputValue inputValue;
-				if (isWindowed){
+				if (isWindowed) {
 					//timestamp is part of the key, timestamp to expire the key is the after now + duration
-					inputValue = new InputValue(t, window.getRule().adaptKey(key, timestamp), clock.millis() );
-				}
-				else {
+					inputValue = new InputValue(t, window.getRule().adaptKey(key, timestamp), clock.millis());
+				} else {
 					inputValue = new InputValue(t, key, timestamp);
 				}
 
@@ -129,12 +130,12 @@ public class ShepherdASync<K,V, S> extends ShepherdBase<K,V, S> {
 
 	@Override
 	public boolean add(K key, V t) {
-		return add(key, t,  clock.millis());
+		return add(key, t, clock.millis());
 	}
 
 	@Override
 	public boolean add(V t) {
-		return add(t,  clock.millis());
+		return add(t, clock.millis());
 	}
 
 	@Override
@@ -145,13 +146,5 @@ public class ShepherdASync<K,V, S> extends ShepherdBase<K,V, S> {
 		pool.shutdown();
 	}
 
-	public boolean areQueuesEmpty() {
 
-		for (LinkedBlockingQueue<InputValue<K,V>> queue : queues) {
-			if (!queue.isEmpty()) {
-				return false;
-			}
-		}
-		return true;
-	}
 }

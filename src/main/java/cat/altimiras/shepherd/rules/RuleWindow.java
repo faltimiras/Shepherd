@@ -17,7 +17,7 @@ public interface RuleWindow<V> {
 
 	WindowKey adaptKey(Object key, long eventTs);
 
-	class WindowKey{
+	class WindowKey {
 		private Object key;
 		private long window;
 
@@ -35,6 +35,11 @@ public interface RuleWindow<V> {
 		}
 
 		@Override
+		public int hashCode() {
+			return Objects.hash(key, window);
+		}
+
+		@Override
 		public boolean equals(Object o) {
 			if (this == o) return true;
 			if (o == null || getClass() != o.getClass()) return false;
@@ -44,8 +49,11 @@ public interface RuleWindow<V> {
 		}
 
 		@Override
-		public int hashCode() {
-			return Objects.hash(key, window);
+		public String toString() {
+			return "WindowKey{" +
+					"key=" + key +
+					", window=" + window +
+					'}';
 		}
 	}
 }

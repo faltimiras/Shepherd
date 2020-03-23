@@ -1,13 +1,8 @@
 package cat.altimiras.shepherd.storage;
 
-import cat.altimiras.shepherd.Metadata;
-
-import java.util.Iterator;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
- *
  * @param <K> Key type
  * @param <V> Value input type
  * @param <S> Value output type, storage can transform it. For instance, it is added a Object and it is return a list of Objects
@@ -16,6 +11,7 @@ public interface ValuesStorage<K, V, S> {
 
 	/**
 	 * Adds V to all V stored behind K
+	 *
 	 * @param key
 	 * @param value
 	 */
@@ -27,6 +23,7 @@ public interface ValuesStorage<K, V, S> {
 
 	/**
 	 * Get and remove all values behind S
+	 *
 	 * @param key
 	 * @return
 	 */

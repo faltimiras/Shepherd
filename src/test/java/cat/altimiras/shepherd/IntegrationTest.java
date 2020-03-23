@@ -8,12 +8,13 @@ import cat.altimiras.shepherd.rules.window.DiscardAllExpiredRule;
 import cat.altimiras.shepherd.rules.window.GroupAllExpiredRule;
 import cat.altimiras.shepherd.rules.window.GroupAllFixedWindowRule;
 import cat.altimiras.shepherd.rules.streaming.NoDuplicatesRule;
-import cat.altimiras.shepherd.rules.keyextractors.SameKeyExtractor;
+import cat.altimiras.shepherd.rules.keyextractors.FixedKeyExtractor;
 import cat.altimiras.shepherd.rules.keyextractors.SimpleKeyExtractor;
 import cat.altimiras.shepherd.storage.file.FileValuesStorage;
 import cat.altimiras.shepherd.storage.redis.RedisValuesStorage;
 import org.junit.Ignore;
 import org.junit.Test;
+import redis.clients.jedis.Jedis;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -239,7 +240,7 @@ public class IntegrationTest {
 
 		ShepherdASync shepherd = ShepherdBuilder.create()
 				.basic(
-						new SameKeyExtractor(),
+						new FixedKeyExtractor(),
 						Optional.of(Collections.singletonList(new AccumulateRule())),
 						fileCollector)
 				.threads(1)
@@ -272,7 +273,7 @@ public class IntegrationTest {
 
 		ShepherdASync shepherd = ShepherdBuilder.create()
 				.basic(
-						new SameKeyExtractor(),
+						new FixedKeyExtractor(),
 						Optional.of(Collections.singletonList(new AccumulateRule())),
 						binaryCollector)
 				.threads(1)
@@ -293,6 +294,9 @@ public class IntegrationTest {
 		assertEquals(1, result.size());
 
 		assertEquals("lololalalele", result.get(0));
+
+		//clean redis
+		cleanRedis(FixedKeyExtractor.KEY);
 	}
 
 	@Test
@@ -302,7 +306,7 @@ public class IntegrationTest {
 
 		ShepherdASync shepherd = ShepherdBuilder.create()
 				.basic(
-						new SameKeyExtractor(),
+						new FixedKeyExtractor(),
 						Optional.empty(),
 						listCollector)
 				.threads(1)
@@ -339,5 +343,10 @@ public class IntegrationTest {
 		} catch (Exception e) {
 			//nothing to do
 		}
+	}
+
+	private void cleanRedis(String key){
+		Jedis jedis = new Jedis();
+		jedis.del(key);
 	}
 }

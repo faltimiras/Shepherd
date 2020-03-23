@@ -19,26 +19,28 @@ abstract class ShepherdBase<K, V, S> implements Shepherd<K, V> {
 	protected final Function<Object, K> keyExtractor;
 	protected final Consumer<S> callback;
 	protected final RuleExecutor<V> ruleExecutor;
+	protected final Window window;
 	protected final boolean isWindowed;
 	protected final Clock clock;
 
 	protected final List<QueueConsumer> consumers;
 
-	public ShepherdBase(Function keyExtractor, Consumer<S> callback, RuleExecutor<V> ruleExecutor, int numConsumers, boolean isWindowed, Metrics metrics, Clock clock) {
+	public ShepherdBase(Function keyExtractor, Consumer<S> callback, RuleExecutor<V> ruleExecutor, int numConsumers, Window window, Metrics metrics, Clock clock) {
 		this.keyExtractor = keyExtractor;
 		this.callback = callback;
 		this.ruleExecutor = ruleExecutor;
 		this.consumers = new ArrayList<>(numConsumers);
-		this.isWindowed = isWindowed;
+		this.isWindowed = window!=null;
+		this.window = window;
 		this.metrics = metrics;
 		this.clock = clock;
 	}
 
 	public void forceTimeout() {
 		if (isWindowed) {
-			consumers.forEach((c -> ((WindowedConsumer) c).checkTimeouts()));
+			consumers.forEach((c -> ((WindowedConsumer) c).checkWindows()));
 		} else {
-			log.info("Ignoring force timeouts. As no dog is configured");
+			log.info("Ignoring force timeouts. As Window is not configured");
 		}
 	}
 }

@@ -1,6 +1,6 @@
 package cat.altimiras.shepherd;
 
-public interface Shepherd<K,V> {
+public interface Shepherd<K, V> {
 
 	boolean add(V t, long timestamp);
 

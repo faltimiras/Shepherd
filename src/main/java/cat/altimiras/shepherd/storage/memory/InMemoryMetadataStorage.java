@@ -5,8 +5,6 @@ import cat.altimiras.shepherd.storage.MetadataStorage;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public class InMemoryMetadataStorage<K> implements MetadataStorage<K> {

@@ -15,21 +15,11 @@ public class InMemoryValuesStorage<K, V> implements ValuesStorage<K, V, List<V>>
 	@Override
 	public void append(K key, V value) {
 		List<V> list = storage.get(key);
-		if (list == null){
+		if (list == null) {
 			list = new ArrayList<>();
-			storage.put(key,list);
+			storage.put(key, list);
 		}
 		list.add(value);
-	}
-
-	@Override
-	public List<V> drain(K key) {
-		return storage.remove(key);
-	}
-
-	@Override
-	public void override(K key, List<V> value) {
-		storage.put(key,value);
 	}
 
 	@Override
@@ -40,6 +30,16 @@ public class InMemoryValuesStorage<K, V> implements ValuesStorage<K, V, List<V>>
 	@Override
 	public List<V> get(K key) {
 		return Collections.unmodifiableList(storage.get(key));
+	}
+
+	@Override
+	public List<V> drain(K key) {
+		return storage.remove(key);
+	}
+
+	@Override
+	public void override(K key, List<V> value) {
+		storage.put(key, value);
 	}
 
 	@Override

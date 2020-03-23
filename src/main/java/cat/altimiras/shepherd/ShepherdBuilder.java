@@ -1,8 +1,10 @@
 package cat.altimiras.shepherd;
 
-import cat.altimiras.shepherd.executor.IndependentExecutor;
+import cat.altimiras.shepherd.executor.CloseOrLastExecutor;
 import cat.altimiras.shepherd.rules.Rule;
 import cat.altimiras.shepherd.rules.RuleWindow;
+import cat.altimiras.shepherd.rules.keyextractors.FixedKeyExtractor;
+import cat.altimiras.shepherd.rules.window.GroupAllFixedWindowRule;
 import cat.altimiras.shepherd.scheduler.Scheduler;
 import cat.altimiras.shepherd.storage.MetadataStorage;
 import cat.altimiras.shepherd.storage.ValuesStorage;
@@ -22,16 +24,16 @@ import java.util.function.Supplier;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class ShepherdBuilder<T, S> {
 
+	private final static Clock clock = Clock.systemUTC();
 	private int thread;
 	private Function keyExtractor;
 	private List<Rule<S>> rules;
 	private Consumer<S> callback;
 	private WindowBuilder<T> windowBuilder = null;
 	private MetricRegistry metrics = null;
-	private RuleExecutor<T> ruleExecutor = new IndependentExecutor();
+	private RuleExecutor<T> ruleExecutor = new CloseOrLastExecutor();
 	private Supplier<MetadataStorage> metadataStorageProvider = InMemoryMetadataStorage::new;
 	private Supplier<ValuesStorage> valuesStorageProvider = InMemoryValuesStorage::new;
-	private final static Clock clock = Clock.systemUTC();
 
 	private ShepherdBuilder() {
 	}
@@ -42,10 +44,6 @@ public class ShepherdBuilder<T, S> {
 
 	public ShepherdBuilder basic(Optional<List<Rule<S>>> rules, Consumer<S> callback) throws Exception {
 		return basic(null, rules, callback);
-	}
-
-	public ShepherdBuilder basic(Consumer<S> callback) throws Exception {
-		return basic(null, Optional.empty(), callback);
 	}
 
 	public ShepherdBuilder basic(Function keyExtractor, Optional<List<Rule<S>>> rules, Consumer<S> callback) throws Exception {
@@ -60,6 +58,10 @@ public class ShepherdBuilder<T, S> {
 		}
 		this.callback = callback;
 		return this;
+	}
+
+	public ShepherdBuilder basic(Consumer<S> callback) throws Exception {
+		return basic(null, Optional.empty(), callback);
 	}
 
 	public ShepherdBuilder withRuleExecutor(RuleExecutor ruleExecutor) {
@@ -167,5 +169,19 @@ public class ShepherdBuilder<T, S> {
 		public ShepherdSync buildSync() {
 			return this.shepherdBuilder.buildSync(new Window(rule, precision, schedulerProvider));
 		}
+	}
+
+	public ShepherdASync createFixedWindowAccumulator(Duration windowDuration, Consumer<S> callback ) throws Exception{
+		ShepherdASync shepherd = ShepherdBuilder.create()
+				.basic(
+						new FixedKeyExtractor(),
+						Optional.empty(),
+						callback)
+				.threads(1)
+				.withWindow(
+						windowDuration.dividedBy(4),
+						new GroupAllFixedWindowRule(windowDuration))
+				.build();
+		return shepherd;
 	}
 }

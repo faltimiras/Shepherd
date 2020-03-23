@@ -3,12 +3,15 @@ package cat.altimiras.shepherd.rules.window;
 import cat.altimiras.shepherd.LazyValue;
 import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.RuleResult;
-import cat.altimiras.shepherd.rules.window.SlidingWindowBaseRule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Duration;
 
 public class GroupAllExpiredRule extends SlidingWindowBaseRule {
+
+	private static Logger log = LoggerFactory.getLogger(GroupAllExpiredRule.class);
 
 	final private boolean fromLastElement;
 
@@ -25,8 +28,11 @@ public class GroupAllExpiredRule extends SlidingWindowBaseRule {
 	@Override
 	public RuleResult canClose(Metadata metadata, LazyValue<Object, Object> lazyValue) {
 
+		log.debug("Executing GroupAllExpiredRule check");
+
 		if (isWindowExpired(metadata, fromLastElement)) {
-			return RuleResult.groupAllAndDiscard();
+			log.debug("Windows is expired, closing it");
+			return RuleResult.groupAndDiscardAll();
 		}
 		return RuleResult.notGroup();
 	}

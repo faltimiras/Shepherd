@@ -13,7 +13,7 @@ public class RedisValuesStorage implements ValuesStorage<Object, Object, String>
 
 	//Serializers
 	final private Function<Object, String> keySerializer;
-	final private Function<Object,String> valueSerializer;
+	final private Function<Object, String> valueSerializer;
 
 	final private Jedis jedis;
 

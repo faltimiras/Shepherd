@@ -14,13 +14,13 @@ public abstract class QueueConsumer<K, T, S> implements Runnable {
 
 	protected static Logger log = LoggerFactory.getLogger(QueueConsumer.class);
 
-	protected ValuesStorage<K, T, S> valuesStorage;
-	protected MetadataStorage<K> metadataStorage;
 	protected final List<Rule<T>> rules;
 	protected final BlockingQueue<InputValue<K, T>> queue;
 	protected final Consumer<S> callback;
 	protected final RuleExecutor<T> ruleExecutor;
 	protected final Metrics metrics;
+	protected ValuesStorage<K, T, S> valuesStorage;
+	protected MetadataStorage<K> metadataStorage;
 
 	public QueueConsumer(MetadataStorage<K> metadataStorage, ValuesStorage<K, T, S> valuesStorage, List<Rule<T>> rules, BlockingQueue<InputValue<K, T>> queue, RuleExecutor<T> ruleExecutor, Consumer<S> callback, Metrics metrics) {
 		this.metadataStorage = metadataStorage;
@@ -34,7 +34,7 @@ public abstract class QueueConsumer<K, T, S> implements Runnable {
 
 	public void consume(InputValue<K, T> t) {
 
-		try (AutoCloseable ac = metrics.rulesExecTime()){
+		try (AutoCloseable ac = metrics.rulesExecTime()) {
 			metrics.pendingDec();
 			Metadata<K> metadata = metadataStorage.get(t.getKey());
 			if (metadata == null) {
@@ -63,31 +63,39 @@ public abstract class QueueConsumer<K, T, S> implements Runnable {
 		boolean needsToRemoveMetadataForThisKey = false;
 		if (ruleResult.getDiscard() == -1) {
 			valuesStorage.remove(key);
+			metadata.resetElementsCount();
 			needsToRemoveMetadataForThisKey = true;
 		}
 
 		if (value != null && ruleResult.getAppend() == -1) {
 			valuesStorage.append(key, value);
 			metadata.incElementsCount();
+			needsToRemoveMetadataForThisKey = false; //cancel metadata remove
 		}
 
 		if (ruleResult.canClose()) {
 			//output format depends on how storage handles it
-			if (ruleResult.getGroup() != null) {
+			if (ruleResult.getToKeep() != null) {
 				valuesStorage.override(key, ruleResult.getToKeep());
-				metadata.setLastElementTs(ruleResult.getToKeep().size());
+				metadata.setElementsCount(ruleResult.getToKeep().size());
 			}
-			callback.accept(valuesStorage.publish(key));
+			S r = valuesStorage.publish(key);
+			if (r != null) {
+				callback.accept(r);
+			}
+		}
+
+
+		if (ruleResult.getDiscard() == 1) {
+			valuesStorage.remove(key);
+			metadata.resetElementsCount();
+			needsToRemoveMetadataForThisKey = true;
 		}
 
 		if (value != null && ruleResult.getAppend() == 1) {
 			valuesStorage.append(key, value);
 			metadata.incElementsCount();
-		}
-
-		if (ruleResult.getDiscard() == 1) {
-			valuesStorage.remove(key);
-			needsToRemoveMetadataForThisKey = true;
+			needsToRemoveMetadataForThisKey = false; //cancel metadata remove
 		}
 
 		if (ruleResult.getToKeep() != null) {

@@ -5,9 +5,9 @@ import cat.altimiras.shepherd.LazyValue;
 import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.Metrics;
 import cat.altimiras.shepherd.QueueConsumer;
-import cat.altimiras.shepherd.rules.Rule;
 import cat.altimiras.shepherd.RuleExecutor;
 import cat.altimiras.shepherd.RuleResult;
+import cat.altimiras.shepherd.rules.Rule;
 import cat.altimiras.shepherd.rules.RuleWindow;
 import cat.altimiras.shepherd.scheduler.Scheduler;
 import cat.altimiras.shepherd.storage.MetadataStorage;
@@ -25,15 +25,11 @@ public class WindowedConsumer<K, V, S> extends QueueConsumer<K, V, S> {
 
 	private final Scheduler scheduler;
 	private final RuleWindow rulesWindow;
-	private final long precision;
-	private final Clock clock;
 
-	public WindowedConsumer(MetadataStorage<K> metadataStorage, ValuesStorage<K, V, S> valuesStorage, List<Rule<V>> rules, RuleExecutor<V> ruleExecutor, BlockingQueue<InputValue<K, V>> queue, Scheduler scheduler, RuleWindow ruleWindow, Duration precision, Clock clock, Consumer<S> callback, Metrics metrics) {
+	public WindowedConsumer(MetadataStorage<K> metadataStorage, ValuesStorage<K, V, S> valuesStorage, List<Rule<V>> rules, RuleExecutor<V> ruleExecutor, BlockingQueue<InputValue<K, V>> queue, Scheduler scheduler, RuleWindow ruleWindow, Consumer<S> callback, Metrics metrics) {
 		super(metadataStorage, valuesStorage, rules, queue, ruleExecutor, callback, metrics);
 		this.scheduler = scheduler;
 		this.rulesWindow = ruleWindow;
-		this.precision = precision.toMillis();
-		this.clock = clock;
 	}
 
 	@Override
@@ -57,23 +53,23 @@ public class WindowedConsumer<K, V, S> extends QueueConsumer<K, V, S> {
 		if (millis < 0) {
 			Thread.sleep(-millis);
 		} else if (millis == 0) {
-			checkTimeouts();
+			checkWindows();
 		} else {
-			log.info("Waiting for next element. Max ms: {}", millis);
+			log.trace("Waiting for next element. Max ms: {}", millis);
 			InputValue inputValue = queue.poll(millis, TimeUnit.MILLISECONDS);
 			if (inputValue == null) {
-				checkTimeouts();
+				checkWindows();
 			} else {
 				consume(inputValue);
 			}
 		}
 	}
 
-	public void checkTimeouts() {
+	public void checkWindows() {
 
-		log.debug("Dog gonna run for timeouts");
+		log.debug("Checking opened windows");
 
-		try (AutoCloseable ac = metrics.rulesTimeoutExecTime()) {
+		try (AutoCloseable ac = metrics.ruleWindowExecTime()) {
 			Iterator<Metadata<K>> it = metadataStorage.values();
 
 			while (it.hasNext()) {
@@ -91,7 +87,7 @@ public class WindowedConsumer<K, V, S> extends QueueConsumer<K, V, S> {
 				scheduler.justExecuted();
 			}
 		} catch (Exception e) {
-			log.error("Error executing timeout rules", e);
+			log.error("Error closing windows", e);
 		}
 	}
 }
