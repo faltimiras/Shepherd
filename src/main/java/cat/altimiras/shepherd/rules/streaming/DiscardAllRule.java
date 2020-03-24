@@ -5,7 +5,7 @@ import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.RuleResult;
 import cat.altimiras.shepherd.rules.Rule;
 
-public class DiscardAllRule implements Rule<Object> {
+public class DiscardAllRule implements Rule {
 
 	@Override
 	public RuleResult canClose(Metadata metadata, Object value, LazyValue lazyValue) {

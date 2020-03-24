@@ -5,10 +5,12 @@ import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.RuleResult;
 import cat.altimiras.shepherd.rules.Rule;
 
-public class AccumulateRule implements Rule<Object> {
+import java.util.List;
+
+public class AccumulateRule implements Rule {
 
 	@Override
-	public RuleResult canClose(Metadata metadata, Object value, LazyValue<?, Object> lazyValue) {
+	public RuleResult canClose(Metadata metadata, Object value, LazyValue lazyValue) {
 		return RuleResult.notGroupAndAppend();
 	}
 }

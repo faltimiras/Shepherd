@@ -6,22 +6,22 @@ import java.util.Map;
 public class Metadata<K> {
 
 	private final K key;
-	private final long creationTs;
+	private final long eventTs;
 	private Map<String, Object> metadata;
 	private long lastElementTs;
 	private long elementsCount;
 
-	public Metadata(K key, long creationTs) {
+	public Metadata(K key, long eventTs) {
 		this.key = key;
-		this.creationTs = creationTs;
+		this.eventTs = eventTs;
 	}
 
 	public K getKey() {
 		return key;
 	}
 
-	public long getCreationTs() {
-		return creationTs;
+	public long getEventTs() {
+		return eventTs;
 	}
 
 	public long getLastElementTs() {

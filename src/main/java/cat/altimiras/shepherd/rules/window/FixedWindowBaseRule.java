@@ -1,5 +1,6 @@
 package cat.altimiras.shepherd.rules.window;
 
+import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.rules.RuleWindow;
 
 import java.time.Clock;
@@ -9,18 +10,13 @@ import java.time.Duration;
  * Fixed window is not related to element added to the system, it depends on UTC.
  * Creating windows starting and closing at "o'clock"
  */
-public abstract class FixedWindowBaseRule extends WindowBaseRule implements RuleWindow<Object> {
+public abstract class FixedWindowBaseRule<V,S> extends WindowBaseRule<V,S> implements RuleWindow<V,S> {
 
-	private long endCurrentOpenWindow;
+	final private long delayed;
 
-	public FixedWindowBaseRule(Duration window, Clock clock) {
+	public FixedWindowBaseRule(Duration window, Duration delayed, Clock clock) {
 		super(window, clock);
-		this.endCurrentOpenWindow = calculateWindow(clock.millis());
-	}
-
-	private long calculateWindow(long instant) {
-		long mod = instant % windowInMillis;
-		return instant + windowInMillis - mod;
+		this.delayed = delayed.toMillis();
 	}
 
 	@Override
@@ -33,21 +29,22 @@ public abstract class FixedWindowBaseRule extends WindowBaseRule implements Rule
 		return new WindowKey(key, calculateWindow(eventTs));
 	}
 
-	protected boolean isWindowOpen() {
-		return !isWindowExpired();
+	protected boolean isWindowOpen(Metadata<? extends  WindowKey> metadata) {
+		return !isWindowExpired(metadata);
 	}
 
-	protected boolean isWindowExpired() {
+	protected boolean isWindowExpired(Metadata<? extends  WindowKey> metadata) {
 
 		long now = clock.millis();
-		if (now >= endCurrentOpenWindow) {
-			endCurrentOpenWindow = calculateWindow(clock.millis());
+
+		if (now >= metadata.getKey().getWindow()) {
 			return true;
 		}
 		return false;
 	}
 
-	long getEndCurrentOpenWindow() {
-		return endCurrentOpenWindow;
+	private long calculateWindow(long instant) {
+		long mod = instant % windowInMillis;
+		return instant + windowInMillis - mod;
 	}
 }

@@ -13,12 +13,11 @@ import java.util.List;
  * Stops at first rule that returns a canClose
  * If any rule can not group, keeps/discard/append values returned by last executed rule
  *
- * @param <T>
  */
-public class CloseOrLastExecutor<T, S> implements RuleExecutor<T> {
+public class CloseOrLastExecutor<V, S> implements RuleExecutor<V,S> {
 
 	@Override
-	public RuleResult<T> execute(Metadata metadata, T newValue, LazyValue lazyValue, List<Rule<T>> rules) {
+	public RuleResult<S> execute(Metadata metadata, V newValue, LazyValue lazyValue, List<Rule<V,S>> rules) {
 
 		RuleResult result = null;
 		for (Rule rule : rules) {

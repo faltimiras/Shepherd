@@ -84,41 +84,12 @@ public class FileValuesStorage<K, V> implements ValuesStorage<K, V, Path> {
 	}
 
 	@Override
-	public List<V> get(K key) {
-		throw new UnsupportedOperationException("File storage do not support it. Hint: If you needed you can code your own FileStorage");
-	}
-
-	@Override
-	public Path drain(K key) {
-		return storage.remove(key);
-	}
-
-	@Override
-	public void override(K key, List<V> value) {
-
-		Path path = storage.get(key);
-		try {
-			if (path == null) {
-				log.debug("Path {} not present", path);
-				path = storageBaseDir.resolve(key.toString());
-				log.debug("New path {} for key {} created", path, key);
-				storage.put(key, path);
-			} else {
-				Files.deleteIfExists(path);
-			}
-
-			for (V v : value) {
-				Files.write(path, serializer.apply(v), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-				Files.write(path, separator, StandardOpenOption.APPEND);
-			}
-		} catch (Exception e) {
-			log.error("Error appending value to the file {} ", e);
-			throw new RuntimeException("Error storing value", e);
-		}
-	}
-
-	@Override
-	public Path publish(K key) {
+	public Path get(K key) {
 		return storage.get(key);
+	}
+
+	@Override
+	public void override(K key, Path value) {
+		throw new UnsupportedOperationException("File storage do not support it. Hint: If you needed you can code your own FileStorage");
 	}
 }

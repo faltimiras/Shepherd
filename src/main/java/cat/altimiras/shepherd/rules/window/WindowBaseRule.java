@@ -5,7 +5,7 @@ import cat.altimiras.shepherd.rules.RuleWindow;
 import java.time.Clock;
 import java.time.Duration;
 
-public abstract class WindowBaseRule implements RuleWindow<Object> {
+public abstract class WindowBaseRule<V,S> implements RuleWindow<V,S> {
 
 	final protected Duration window;
 	final protected long windowInMillis;

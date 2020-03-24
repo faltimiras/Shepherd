@@ -4,7 +4,7 @@ import cat.altimiras.shepherd.rules.Rule;
 
 import java.util.List;
 
-public interface RuleExecutor<T> {
+public interface RuleExecutor<V, S> {
 
-	RuleResult<T> execute(final Metadata metadata, final T newValue, LazyValue lazyValue, List<Rule<T>> rules);
+	RuleResult<S> execute(final Metadata metadata, final V newValue, LazyValue lazyValue, List<Rule<V, S>> rules);
 }

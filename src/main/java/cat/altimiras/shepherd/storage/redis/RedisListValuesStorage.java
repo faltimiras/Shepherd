@@ -55,24 +55,8 @@ public class RedisListValuesStorage implements ValuesStorage<Object, Object, Lis
 	}
 
 	@Override
-	public List<String> drain(Object key) {
-		String k = keySerializer.apply(key);
-		Transaction tx = jedis.multi();
-		Response<List<String>> response = tx.lrange(k, 0l, Long.MAX_VALUE);
-		tx.del(k);
-		tx.exec();
-
-		return response.get();
-	}
-
-	@Override
 	public void override(Object key, List value) {
 		jedis.set(keySerializer.apply(key), valueSerializer.apply(value));
-	}
-
-	@Override
-	public List<String> publish(Object key) {
-		return jedis.lrange(keySerializer.apply(key), 0l, Long.MAX_VALUE);
 	}
 
 	Jedis getJedis() {

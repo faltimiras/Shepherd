@@ -12,7 +12,7 @@ import java.util.Date;
 /**
  * Sliding windows depends on creation or lastElement arrival, so every key has a different window.
  */
-public abstract class SlidingWindowBaseRule extends WindowBaseRule implements RuleWindow<Object> {
+public abstract class SlidingWindowBaseRule<K,V,S> extends WindowBaseRule<V,S> implements RuleWindow<V,S> {
 
 	private static Logger log = LoggerFactory.getLogger(SlidingWindowBaseRule.class);
 
@@ -20,7 +20,7 @@ public abstract class SlidingWindowBaseRule extends WindowBaseRule implements Ru
 		super(window, clock);
 	}
 
-	protected boolean isWindowExpired(Metadata metadata) {
+	protected boolean isWindowExpired(Metadata<K> metadata) {
 		return isWindowExpired(metadata, false);
 	}
 
@@ -29,9 +29,9 @@ public abstract class SlidingWindowBaseRule extends WindowBaseRule implements Ru
 	 * @param fromLastElement true to consider windows from last element grouped, otherwise first
 	 * @return
 	 */
-	protected boolean isWindowExpired(Metadata metadata, boolean fromLastElement) {
+	protected boolean isWindowExpired(Metadata<K> metadata, boolean fromLastElement) {
 
-		long timeReference = fromLastElement ? metadata.getLastElementTs() : metadata.getCreationTs();
+		long timeReference = fromLastElement ? metadata.getLastElementTs() : metadata.getEventTs();
 		long now = clock.millis();
 		if (now > timeReference + windowInMillis) {
 			if (log.isDebugEnabled()) {
@@ -42,11 +42,11 @@ public abstract class SlidingWindowBaseRule extends WindowBaseRule implements Ru
 		return false;
 	}
 
-	protected boolean isWindowOpen(Metadata metadata, boolean fromLastElement) {
+	protected boolean isWindowOpen(Metadata<K> metadata, boolean fromLastElement) {
 		return !isWindowExpired(metadata, fromLastElement);
 	}
 
-	protected boolean isWindowOpen(Metadata metadata) {
+	protected boolean isWindowOpen(Metadata<K> metadata) {
 		return !isWindowExpired(metadata, false);
 	}
 

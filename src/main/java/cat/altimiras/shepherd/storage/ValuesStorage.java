@@ -19,18 +19,8 @@ public interface ValuesStorage<K, V, S> {
 
 	void remove(K key);
 
-	List<V> get(K key);
+	S get(K key);
 
-	/**
-	 * Get and remove all values behind S
-	 *
-	 * @param key
-	 * @return
-	 */
-	S drain(K key);
-
-	void override(K key, List<V> value);
-
-	S publish(K key);
+	void override(K key, S value);
 
 }

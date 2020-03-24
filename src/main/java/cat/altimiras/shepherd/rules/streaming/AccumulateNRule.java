@@ -5,7 +5,9 @@ import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.RuleResult;
 import cat.altimiras.shepherd.rules.Rule;
 
-public class AccumulateNRule implements Rule<Object> {
+import java.util.List;
+
+public class AccumulateNRule implements Rule<Object, List<Object>> {
 
 	final private int limit;
 
@@ -17,7 +19,7 @@ public class AccumulateNRule implements Rule<Object> {
 	}
 
 	@Override
-	public RuleResult canClose(Metadata metadata, Object value, LazyValue<?, Object> lazyValue) {
+	public RuleResult canClose(Metadata metadata, Object value, LazyValue<?, Object, List<Object>> lazyValue) {
 
 		long count = metadata.getElementsCount();
 		if (count == 0) {
@@ -32,4 +34,5 @@ public class AccumulateNRule implements Rule<Object> {
 
 
 	}
+
 }

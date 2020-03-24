@@ -10,19 +10,19 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Consumer;
 
-public abstract class QueueConsumer<K, T, S> implements Runnable {
+public abstract class QueueConsumer<K, V, S> implements Runnable {
 
 	protected static Logger log = LoggerFactory.getLogger(QueueConsumer.class);
 
-	protected final List<Rule<T>> rules;
-	protected final BlockingQueue<InputValue<K, T>> queue;
+	protected final List<Rule<V, S>> rules;
+	protected final BlockingQueue<InputValue<K, V>> queue;
 	protected final Consumer<S> callback;
-	protected final RuleExecutor<T> ruleExecutor;
+	protected final RuleExecutor<V, S> ruleExecutor;
 	protected final Metrics metrics;
-	protected ValuesStorage<K, T, S> valuesStorage;
+	protected ValuesStorage<K, V, S> valuesStorage;
 	protected MetadataStorage<K> metadataStorage;
 
-	public QueueConsumer(MetadataStorage<K> metadataStorage, ValuesStorage<K, T, S> valuesStorage, List<Rule<T>> rules, BlockingQueue<InputValue<K, T>> queue, RuleExecutor<T> ruleExecutor, Consumer<S> callback, Metrics metrics) {
+	public QueueConsumer(MetadataStorage<K> metadataStorage, ValuesStorage<K, V, S> valuesStorage, List<Rule<V, S>> rules, BlockingQueue<InputValue<K, V>> queue, RuleExecutor<V, S> ruleExecutor, Consumer<S> callback, Metrics metrics) {
 		this.metadataStorage = metadataStorage;
 		this.valuesStorage = valuesStorage;
 		this.rules = rules;
@@ -32,7 +32,7 @@ public abstract class QueueConsumer<K, T, S> implements Runnable {
 		this.metrics = metrics;
 	}
 
-	public void consume(InputValue<K, T> t) {
+	public void consume(InputValue<K, V> t) {
 
 		try (AutoCloseable ac = metrics.rulesExecTime()) {
 			metrics.pendingDec();
@@ -55,10 +55,11 @@ public abstract class QueueConsumer<K, T, S> implements Runnable {
 			}
 		} catch (Exception e) {
 			log.error("Error consuming element", e);
+			e.printStackTrace();
 		}
 	}
 
-	protected boolean postProcess(K key, T value, Metadata metadata, RuleResult<T> ruleResult) {
+	protected boolean postProcess(K key, V value, Metadata metadata, RuleResult<S> ruleResult) {
 
 		boolean needsToRemoveMetadataForThisKey = false;
 		if (ruleResult.getDiscard() == -1) {
@@ -75,16 +76,15 @@ public abstract class QueueConsumer<K, T, S> implements Runnable {
 
 		if (ruleResult.canClose()) {
 			//output format depends on how storage handles it
-			if (ruleResult.getToKeep() != null) {
-				valuesStorage.override(key, ruleResult.getToKeep());
-				metadata.setElementsCount(ruleResult.getToKeep().size());
-			}
-			S r = valuesStorage.publish(key);
-			if (r != null) {
-				callback.accept(r);
+			if (ruleResult.getGroup() != null) {
+				callback.accept(ruleResult.getGroup());
+			} else {
+				S s = valuesStorage.get(key);
+				if (s != null) {
+					callback.accept(s);
+				}
 			}
 		}
-
 
 		if (ruleResult.getDiscard() == 1) {
 			valuesStorage.remove(key);
@@ -100,7 +100,7 @@ public abstract class QueueConsumer<K, T, S> implements Runnable {
 
 		if (ruleResult.getToKeep() != null) {
 			valuesStorage.override(key, ruleResult.getToKeep());
-			metadata.setLastElementTs(ruleResult.getToKeep().size());
+			//metadata.setLastElementTs(ruleResult.getToKeep().size());
 		}
 
 		return needsToRemoveMetadataForThisKey;

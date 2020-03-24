@@ -26,7 +26,7 @@ public class GroupAllExpiredRule extends SlidingWindowBaseRule {
 	}
 
 	@Override
-	public RuleResult canClose(Metadata metadata, LazyValue<Object, Object> lazyValue) {
+	public RuleResult canClose(Metadata metadata, LazyValue lazyValue) {
 
 		log.debug("Executing GroupAllExpiredRule check");
 

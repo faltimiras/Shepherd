@@ -2,7 +2,6 @@ package cat.altimiras.shepherd.rules.streaming;
 
 import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.RuleResult;
-import cat.altimiras.shepherd.rules.streaming.AccumulateNRule;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

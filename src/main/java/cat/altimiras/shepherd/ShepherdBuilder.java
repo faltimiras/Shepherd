@@ -9,7 +9,7 @@ import cat.altimiras.shepherd.scheduler.Scheduler;
 import cat.altimiras.shepherd.storage.MetadataStorage;
 import cat.altimiras.shepherd.storage.ValuesStorage;
 import cat.altimiras.shepherd.storage.memory.InMemoryMetadataStorage;
-import cat.altimiras.shepherd.storage.memory.InMemoryValuesStorage;
+import cat.altimiras.shepherd.storage.memory.InMemoryListValuesStorage;
 import com.codahale.metrics.MetricRegistry;
 
 import java.time.Clock;
@@ -22,18 +22,18 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class ShepherdBuilder<T, S> {
+public class ShepherdBuilder<V, S> {
 
 	private final static Clock clock = Clock.systemUTC();
 	private int thread;
 	private Function keyExtractor;
-	private List<Rule<S>> rules;
+	private List<Rule<V,S>> rules;
 	private Consumer<S> callback;
-	private WindowBuilder<T> windowBuilder = null;
+	private WindowBuilder<V> windowBuilder = null;
 	private MetricRegistry metrics = null;
-	private RuleExecutor<T> ruleExecutor = new CloseOrLastExecutor();
+	private RuleExecutor<V,S> ruleExecutor = new CloseOrLastExecutor();
 	private Supplier<MetadataStorage> metadataStorageProvider = InMemoryMetadataStorage::new;
-	private Supplier<ValuesStorage> valuesStorageProvider = InMemoryValuesStorage::new;
+	private Supplier<ValuesStorage> valuesStorageProvider = InMemoryListValuesStorage::new;
 
 	private ShepherdBuilder() {
 	}
@@ -42,11 +42,11 @@ public class ShepherdBuilder<T, S> {
 		return new ShepherdBuilder();
 	}
 
-	public ShepherdBuilder basic(Optional<List<Rule<S>>> rules, Consumer<S> callback) throws Exception {
+	public ShepherdBuilder basic(Optional<List<Rule<V,S>>> rules, Consumer<S> callback) throws Exception {
 		return basic(null, rules, callback);
 	}
 
-	public ShepherdBuilder basic(Function keyExtractor, Optional<List<Rule<S>>> rules, Consumer<S> callback) throws Exception {
+	public ShepherdBuilder basic(Function keyExtractor, Optional<List<Rule<V,S>>> rules, Consumer<S> callback) throws Exception {
 
 		this.thread = 1;
 		rules.ifPresent(ruleList -> this.rules = Collections.unmodifiableList(ruleList));
@@ -97,7 +97,7 @@ public class ShepherdBuilder<T, S> {
 	}
 
 	public WindowBuilder withWindow(Duration precision, RuleWindow rule) {
-		this.windowBuilder = new WindowBuilder<T>(this, precision, rule);
+		this.windowBuilder = new WindowBuilder(this, precision, rule);
 		return this.windowBuilder;
 	}
 
@@ -115,6 +115,9 @@ public class ShepherdBuilder<T, S> {
 	}
 
 	private ShepherdSync buildSync(Window window) {
+		if (thread != 1){
+			throw new IllegalArgumentException("Sync Shepherd must be mono thread");
+		}
 		return new ShepherdSync(metadataStorageProvider, valuesStorageProvider, keyExtractor, rules, ruleExecutor, callback, window, new Metrics(metrics), clock);
 	}
 

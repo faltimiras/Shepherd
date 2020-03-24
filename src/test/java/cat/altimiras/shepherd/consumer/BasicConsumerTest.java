@@ -33,7 +33,7 @@ public class BasicConsumerTest {
 	private String key = "key";
 	private Metadata metadata = new Metadata(key, 123L);
 	private Object object = new Object();
-	private List publish = Collections.singletonList(new Object());
+	private List get = Collections.singletonList(new Object());
 	private InputValue inputValue = new InputValue(object, key, 123L);
 
 	private Consumer<List> callback;
@@ -60,7 +60,7 @@ public class BasicConsumerTest {
 	}
 
 	@Test
-	public void firstNoGroup() throws Exception {
+	public void firstNoGroup() {
 
 		when(metadataStorage.get(key)).thenReturn(null);
 		when(ruleExecutor.execute(any(Metadata.class), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.notGroup());
@@ -73,14 +73,14 @@ public class BasicConsumerTest {
 		verify(metadataStorage, times(1)).put(eq(key), any(Metadata.class)); //TODO metadata matcher
 		verify(valuesStorage, never()).remove(any());
 		verify(valuesStorage, never()).append(any(), any());
-		verify(valuesStorage, never()).publish(any());
+		verify(valuesStorage, never()).get(any());
 		verify(valuesStorage, never()).override(any(), any());
 		verify(callback, never()).accept(any());
 		verify(metadataStorage, never()).remove(any());
 	}
 
 	@Test
-	public void secondNoGroup() throws Exception {
+	public void secondNoGroup() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
 		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.notGroup());
@@ -90,217 +90,262 @@ public class BasicConsumerTest {
 		verify(metrics, times(1)).rulesExecTime();
 		verify(metrics, times(1)).pendingDec();
 
-		verify(metadataStorage,never()).put(eq(key), any(Metadata.class));
+		verify(metadataStorage, never()).put(eq(key), any(Metadata.class));
 		verify(valuesStorage, never()).remove(any());
 		verify(valuesStorage, never()).append(any(), any());
-		verify(valuesStorage, never()).publish(any());
+		verify(valuesStorage, never()).get(any());
 		verify(valuesStorage, never()).override(any(), any());
 		verify(callback, never()).accept(any());
 		verify(metadataStorage, never()).remove(any());
 	}
 
 	@Test
-	public void groupAndDiscardAll() throws Exception {
+	public void groupAndDiscardAll() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
 		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.groupAndDiscardAll());
-		when(valuesStorage.publish(key)).thenReturn(publish);
+		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
 
 		verify(metrics, times(1)).rulesExecTime();
 		verify(metrics, times(1)).pendingDec();
 
-		verify(metadataStorage,never()).put(eq(key), any(Metadata.class));
+		verify(metadataStorage, never()).put(eq(key), any(Metadata.class));
 		verify(valuesStorage, times(1)).remove(key);
 		verify(valuesStorage, never()).append(any(), any());
 		verify(valuesStorage, never()).override(any(), any());
-		verify(callback, times(1)).accept(publish);
+		verify(callback, times(1)).accept(get);
 		verify(metadataStorage, times(1)).remove(any());
 	}
 
 	@Test
-	public void groupAndAppend() throws Exception {
+	public void groupAndAppend() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
 		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.groupAndAppend());
-		when(valuesStorage.publish(key)).thenReturn(publish);
+		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
 
 		verify(metrics, times(1)).rulesExecTime();
 		verify(metrics, times(1)).pendingDec();
 
-		verify(metadataStorage,never()).put(eq(key), any(Metadata.class));
-		verify(valuesStorage,never()).remove(key);
+		verify(metadataStorage, never()).put(eq(key), any(Metadata.class));
+		verify(valuesStorage, never()).remove(key);
 		verify(valuesStorage, times(1)).append(any(), any());
 		verify(valuesStorage, never()).override(any(), any());
-		verify(callback, times(1)).accept(publish);
+		verify(callback, times(1)).accept(get);
 		verify(metadataStorage, never()).remove(any());
 	}
 
 	@Test
-	public void discardAndAppendAndGroup() throws Exception {
+	public void discardAndAppendAndGroup() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
 		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.discardAndAppendAndGroup());
-		when(valuesStorage.publish(key)).thenReturn(publish);
+		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
 
 		verify(metrics, times(1)).rulesExecTime();
 		verify(metrics, times(1)).pendingDec();
 
-		verify(metadataStorage,never()).put(eq(key), any(Metadata.class));
-		verify(valuesStorage,times(1)).remove(key);
+		verify(metadataStorage, never()).put(eq(key), any(Metadata.class));
+		verify(valuesStorage, times(1)).remove(key);
 		verify(valuesStorage, times(1)).append(any(), any());
 		verify(valuesStorage, never()).override(any(), any());
-		verify(callback, times(1)).accept(publish);
+		verify(callback, times(1)).accept(get);
 		verify(metadataStorage, never()).remove(any());
 	}
 
 	@Test
-	public void appendAndGroup() throws Exception {
+	public void appendAndGroup() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
 		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.appendAndGroup());
-		when(valuesStorage.publish(key)).thenReturn(publish);
+		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
 
 		verify(metrics, times(1)).rulesExecTime();
 		verify(metrics, times(1)).pendingDec();
 
-		verify(metadataStorage,never()).put(eq(key), any(Metadata.class));
-		verify(valuesStorage,never()).remove(key);
+		verify(metadataStorage, never()).put(eq(key), any(Metadata.class));
+		verify(valuesStorage, never()).remove(key);
 		verify(valuesStorage, times(1)).append(any(), any());
 		verify(valuesStorage, never()).override(any(), any());
-		verify(callback, times(1)).accept(publish);
+		verify(callback, times(1)).accept(get);
 		verify(metadataStorage, never()).remove(any());
 	}
 
 	@Test
-	public void appendAndGroupAndDiscard() throws Exception {
+	public void appendAndGroupAndDiscard() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
 		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.appendAndGroupAndDiscard());
-		when(valuesStorage.publish(key)).thenReturn(publish);
+		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
 
 		verify(metrics, times(1)).rulesExecTime();
 		verify(metrics, times(1)).pendingDec();
 
-		verify(metadataStorage,never()).put(eq(key), any(Metadata.class));
-		verify(valuesStorage,times(1)).remove(key);
+		verify(metadataStorage, never()).put(eq(key), any(Metadata.class));
+		verify(valuesStorage, times(1)).remove(key);
 		verify(valuesStorage, times(1)).append(any(), any());
 		verify(valuesStorage, never()).override(any(), any());
-		verify(callback, times(1)).accept(publish);
+		verify(callback, times(1)).accept(get);
 		verify(metadataStorage, times(1)).remove(any());
 	}
 
 	@Test
-	public void groupAndDiscardAndAppend() throws Exception {
+	public void groupAndDiscardAndAppend() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
 		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.groupAndDiscardAndAppend());
-		when(valuesStorage.publish(key)).thenReturn(publish);
+		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
 
 		verify(metrics, times(1)).rulesExecTime();
 		verify(metrics, times(1)).pendingDec();
 
-		verify(metadataStorage,never()).put(eq(key), any(Metadata.class));
-		verify(valuesStorage,times(1)).remove(key);
+		verify(metadataStorage, never()).put(eq(key), any(Metadata.class));
+		verify(valuesStorage, times(1)).remove(key);
 		verify(valuesStorage, times(1)).append(any(), any());
 		verify(valuesStorage, never()).override(any(), any());
-		verify(callback, times(1)).accept(publish);
-		verify(metadataStorage,never()).remove(any());
+		verify(callback, times(1)).accept(get);
+		verify(metadataStorage, never()).remove(any());
 	}
 
 	@Test
-	public void notGroupAndAppend() throws Exception {
+	public void notGroupAndAppend() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
 		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.notGroupAndAppend());
-		when(valuesStorage.publish(key)).thenReturn(publish);
+		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
 
 		verify(metrics, times(1)).rulesExecTime();
 		verify(metrics, times(1)).pendingDec();
 
-		verify(metadataStorage,never()).put(eq(key), any(Metadata.class));
-		verify(valuesStorage,never()).remove(key);
+		verify(metadataStorage, never()).put(eq(key), any(Metadata.class));
+		verify(valuesStorage, never()).remove(key);
 		verify(valuesStorage, times(1)).append(any(), any());
 		verify(valuesStorage, never()).override(any(), any());
-		verify(callback, never()).accept(publish);
-		verify(metadataStorage,never()).remove(any());
+		verify(callback, never()).accept(get);
+		verify(metadataStorage, never()).remove(any());
 	}
 
 	@Test
-	public void notGroup() throws Exception {
+	public void notGroup() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
 		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.notGroup());
-		when(valuesStorage.publish(key)).thenReturn(publish);
+		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
 
 		verify(metrics, times(1)).rulesExecTime();
 		verify(metrics, times(1)).pendingDec();
 
-		verify(metadataStorage,never()).put(eq(key), any(Metadata.class));
-		verify(valuesStorage,never()).remove(key);
+		verify(metadataStorage, never()).put(eq(key), any(Metadata.class));
+		verify(valuesStorage, never()).remove(key);
 		verify(valuesStorage, never()).append(any(), any());
 		verify(valuesStorage, never()).override(any(), any());
-		verify(callback, never()).accept(publish);
-		verify(metadataStorage,never()).remove(any());
+		verify(callback, never()).accept(get);
+		verify(metadataStorage, never()).remove(any());
 	}
 
 	@Test
-	public void notGroupAndDiscardAll() throws Exception {
+	public void notGroupAndDiscardAll() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
 		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.notGroupAndDiscardAll());
-		when(valuesStorage.publish(key)).thenReturn(publish);
+		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
 
 		verify(metrics, times(1)).rulesExecTime();
 		verify(metrics, times(1)).pendingDec();
 
-		verify(metadataStorage,never()).put(eq(key), any(Metadata.class));
-		verify(valuesStorage,times(1)).remove(key);
+		verify(metadataStorage, never()).put(eq(key), any(Metadata.class));
+		verify(valuesStorage, times(1)).remove(key);
 		verify(valuesStorage, never()).append(any(), any());
 		verify(valuesStorage, never()).override(any(), any());
-		verify(callback, never()).accept(publish);
-		verify(metadataStorage,times(1)).remove(any());
+		verify(callback, never()).accept(get);
+		verify(metadataStorage, times(1)).remove(any());
 	}
 
-	//@Test
-	public void groupAndKeep() throws Exception {
+	@Test
+	public void groupAndKeep() {
 
-		List<Integer> toGroup = Arrays.asList(1,2,3);
-		List<Integer> toKeep = Arrays.asList(4,5,6);
+		List<Integer> toGroup = Arrays.asList(1, 2, 3);
+		List<Integer> toKeep = Arrays.asList(4, 5, 6);
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
 		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.groupAndKeep(toGroup, toKeep));
-		when(valuesStorage.publish(key)).thenReturn(publish);
+		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
 
 		verify(metrics, times(1)).rulesExecTime();
 		verify(metrics, times(1)).pendingDec();
 
-		verify(metadataStorage,never()).put(eq(key), any(Metadata.class));
-		verify(valuesStorage,times(1)).remove(key);
+		verify(metadataStorage, never()).put(eq(key), any(Metadata.class));
+		verify(valuesStorage, never()).remove(key);
 		verify(valuesStorage, never()).append(any(), any());
-		verify(valuesStorage, never()).override(any(), any());
-		verify(callback, never()).accept(publish);
-		verify(metadataStorage,times(1)).remove(any());
+		verify(valuesStorage, times(1)).override(key, toKeep);
+		verify(valuesStorage, never()).get(any());
+		verify(callback, times(1)).accept(toGroup);
+		verify(metadataStorage, never()).remove(any());
 	}
 
+	@Test
+	public void groupAndDiscard() {
 
+		List<Integer> toGroup = Arrays.asList(1, 2, 3);
+
+		when(metadataStorage.get(key)).thenReturn(metadata);
+		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.groupAndDiscard(toGroup));
+		when(valuesStorage.get(key)).thenReturn(get);
+
+		basicConsumer.consume(inputValue);
+
+		verify(metrics, times(1)).rulesExecTime();
+		verify(metrics, times(1)).pendingDec();
+
+		verify(metadataStorage, never()).put(eq(key), any(Metadata.class));
+		verify(valuesStorage, times(1)).remove(key);
+		verify(valuesStorage, never()).append(any(), any());
+		verify(valuesStorage, never()).override(any(), any());
+		verify(valuesStorage, never()).get(any());
+		verify(callback, times(1)).accept(toGroup);
+		verify(metadataStorage, times(1)).remove(any());
+	}
+
+	@Test
+	public void notGroupAndKeep() {
+
+		List<Integer> toKeep = Arrays.asList(1, 2, 3);
+
+		when(metadataStorage.get(key)).thenReturn(metadata);
+		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.notGroupAndKeep(toKeep));
+		when(valuesStorage.get(key)).thenReturn(get);
+
+		basicConsumer.consume(inputValue);
+
+		verify(metrics, times(1)).rulesExecTime();
+		verify(metrics, times(1)).pendingDec();
+
+		verify(metadataStorage, never()).put(eq(key), any(Metadata.class));
+		verify(valuesStorage, never()).remove(key);
+		verify(valuesStorage, never()).append(any(), any());
+		verify(valuesStorage, times(1)).override(key, toKeep);
+		verify(valuesStorage, never()).get(any());
+		verify(callback, never()).accept(any());
+		verify(metadataStorage, never()).remove(any());
+	}
 }

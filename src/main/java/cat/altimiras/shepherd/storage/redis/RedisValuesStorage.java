@@ -50,29 +50,13 @@ public class RedisValuesStorage implements ValuesStorage<Object, Object, String>
 	}
 
 	@Override
-	public List<Object> get(Object key) {
-		throw new UnsupportedOperationException("Separator not defined");
-	}
-
-	@Override
-	public String drain(Object key) {
-		String k = keySerializer.apply(key);
-		Transaction tx = jedis.multi();
-		Response<String> response = tx.get(k);
-		tx.del(k);
-		tx.exec();
-
-		return response.get();
-	}
-
-	@Override
-	public void override(Object key, List value) {
-		jedis.set(keySerializer.apply(key), valueSerializer.apply(value));
-	}
-
-	@Override
-	public String publish(Object key) {
+	public String get(Object key) {
 		return jedis.get(keySerializer.apply(key));
+	}
+
+	@Override
+	public void override(Object key, String value) {
+		jedis.set(keySerializer.apply(key), value);
 	}
 
 	Jedis getJedis() {

@@ -24,9 +24,9 @@ import java.util.function.Consumer;
 public class WindowedConsumer<K, V, S> extends QueueConsumer<K, V, S> {
 
 	private final Scheduler scheduler;
-	private final RuleWindow rulesWindow;
+	private final RuleWindow<V,S> rulesWindow;
 
-	public WindowedConsumer(MetadataStorage<K> metadataStorage, ValuesStorage<K, V, S> valuesStorage, List<Rule<V>> rules, RuleExecutor<V> ruleExecutor, BlockingQueue<InputValue<K, V>> queue, Scheduler scheduler, RuleWindow ruleWindow, Consumer<S> callback, Metrics metrics) {
+	public WindowedConsumer(MetadataStorage<K> metadataStorage, ValuesStorage<K, V, S> valuesStorage, List<Rule<V,S>> rules, RuleExecutor<V,S> ruleExecutor, BlockingQueue<InputValue<K, V>> queue, Scheduler scheduler, RuleWindow ruleWindow, Consumer<S> callback, Metrics metrics) {
 		super(metadataStorage, valuesStorage, rules, queue, ruleExecutor, callback, metrics);
 		this.scheduler = scheduler;
 		this.rulesWindow = ruleWindow;
@@ -75,7 +75,7 @@ public class WindowedConsumer<K, V, S> extends QueueConsumer<K, V, S> {
 			while (it.hasNext()) {
 				Metadata<K> metadata = it.next();
 
-				RuleResult<V> ruleResult = rulesWindow.canClose(metadata, new LazyValue(valuesStorage, metadata.getKey()));
+				RuleResult<S> ruleResult = rulesWindow.canClose(metadata, new LazyValue(valuesStorage, metadata.getKey()));
 
 				boolean needsToRemoveMetadataForThisKey = postProcess(metadata.getKey(), null, metadata, ruleResult);
 				if (needsToRemoveMetadataForThisKey) {

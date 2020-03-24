@@ -7,9 +7,9 @@ import cat.altimiras.shepherd.RuleResult;
 import java.time.Duration;
 import java.util.Objects;
 
-public interface RuleWindow<V> {
+public interface RuleWindow<V, S> {
 
-	RuleResult canClose(Metadata metadata, LazyValue<Object, V> lazyValue);
+	RuleResult canClose(Metadata metadata, LazyValue<?, V, S> lazyValue);
 
 	boolean isSliding();
 

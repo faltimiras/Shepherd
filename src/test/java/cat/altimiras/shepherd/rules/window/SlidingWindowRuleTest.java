@@ -2,7 +2,6 @@ package cat.altimiras.shepherd.rules.window;
 
 import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.RuleResult;
-import cat.altimiras.shepherd.rules.window.GroupAllExpiredRule;
 import org.junit.Test;
 
 import java.time.Clock;

@@ -13,20 +13,24 @@ public class GroupAllFixedWindowRule extends FixedWindowBaseRule {
 
 	private static Logger log = LoggerFactory.getLogger(GroupAllFixedWindowRule.class);
 
-	GroupAllFixedWindowRule(Duration window, Clock clock) {
-		super(window, clock);
+	GroupAllFixedWindowRule(Duration window, Duration delay, Clock clock) {
+		super(window, delay, clock);
+	}
+
+	public GroupAllFixedWindowRule(Duration window, Duration delay) {
+		super(window, delay, Clock.systemUTC());
 	}
 
 	public GroupAllFixedWindowRule(Duration window) {
-		super(window, Clock.systemUTC());
+		super(window, Duration.ofMillis(0), Clock.systemUTC());
 	}
 
 	@Override
-	public RuleResult canClose(Metadata metadata, LazyValue<Object, Object> lazyValue) {
+	public RuleResult canClose(Metadata metadata, LazyValue lazyValue) {
 
 		log.debug("Executing GroupAllFixedWindowRule check");
 
-		if (isWindowExpired()) {
+		if (isWindowExpired(metadata)) {
 			log.debug("Windows is expired, closing it");
 			return RuleResult.groupAndDiscardAll();
 		}
