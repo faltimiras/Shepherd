@@ -59,6 +59,11 @@ public class RedisListValuesStorage implements ValuesStorage<Object, Object, Lis
 		jedis.set(keySerializer.apply(key), valueSerializer.apply(value));
 	}
 
+	@Override
+	public Iterable keys() {
+		return jedis.keys("*");
+	}
+
 	Jedis getJedis() {
 		return jedis;
 	}

@@ -213,7 +213,7 @@ public class SyncIntegrationTest {
 						new GroupAllExpiredRule(Duration.ofMillis(1000), false))
 				.buildSync();
 
-		long instant = System.currentTimeMillis() - 1000;
+		long instant = System.currentTimeMillis() - 1100;
 		shepherd.add("lolo", instant);
 		shepherd.add("lala", instant + 1);
 		shepherd.add("lele", instant + 55);

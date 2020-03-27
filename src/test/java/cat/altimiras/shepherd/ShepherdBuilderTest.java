@@ -1,15 +1,14 @@
 package cat.altimiras.shepherd;
 
+import cat.altimiras.shepherd.rules.window.GroupAllExpiredRule;
 import org.junit.Test;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
 
 public class ShepherdBuilderTest {
-/*
+
 	@Test(expected = IllegalArgumentException.class)
 	public void threadsNegative() throws Exception {
 		ShepherdBuilder.create()
@@ -44,7 +43,7 @@ public class ShepherdBuilderTest {
 		ShepherdBuilder.create()
 				.withWindow(
 						null,
-						Arrays.asList(new DummyRule()));
+						new GroupAllExpiredRule(null, false));
 	}
 
 	@Test(expected = NullPointerException.class)
@@ -55,27 +54,11 @@ public class ShepherdBuilderTest {
 						null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void emptyRulesTimeout() throws Exception {
-		ShepherdBuilder.create()
-				.withWindow(
-						Duration.ofMillis(1),
-						new ArrayList<>());
-	}
-
 	private class DummyKeyExtractor implements Function {
 		@Override
 		public Object apply(Object o) {
 			return null;
 		}
 	}
-
-	private class DummyRule implements Rule {
-		@Override
-		public RuleResult canClose(Metadata metadata, Object value, LazyValue lazyValue) {
-			return null;
-		}
-	}
-*/
 
 }

@@ -15,6 +15,8 @@ import cat.altimiras.shepherd.rules.window.GroupAllFixedWindowRule;
 import cat.altimiras.shepherd.storage.file.FileValuesStorage;
 import cat.altimiras.shepherd.storage.memory.InMemoryValuesStorage;
 import cat.altimiras.shepherd.storage.redis.RedisValuesStorage;
+import com.codahale.metrics.ConsoleReporter;
+import com.codahale.metrics.MetricRegistry;
 import org.junit.Test;
 import redis.clients.jedis.Jedis;
 
@@ -27,6 +29,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;

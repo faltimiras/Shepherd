@@ -13,8 +13,6 @@ import cat.altimiras.shepherd.scheduler.Scheduler;
 import cat.altimiras.shepherd.storage.MetadataStorage;
 import cat.altimiras.shepherd.storage.ValuesStorage;
 
-import java.time.Clock;
-import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;

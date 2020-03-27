@@ -126,7 +126,6 @@ public class ShepherdBuilder<V, S> {
 	}
 
 	private ShepherdASync build(Window window) {
-
 		return new ShepherdASync(metadataStorageProvider, valuesStorageProvider, thread, keyExtractor, rules, ruleExecutor, callback, window, new Metrics(metrics), clock);
 	}
 

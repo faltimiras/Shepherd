@@ -55,7 +55,6 @@ public abstract class QueueConsumer<K, V, S> implements Runnable {
 			}
 		} catch (Exception e) {
 			log.error("Error consuming element", e);
-			e.printStackTrace();
 		}
 	}
 

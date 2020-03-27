@@ -18,9 +18,9 @@ public class Metrics {
 
 		if (metricRegistry != null) {
 			this.metricRegistry = metricRegistry;
-			this.pendingElementToProcess = metricRegistry.counter(name(Shepherd.class, "pending-obj"));
-			this.execTimeRules = metricRegistry.timer(name(Shepherd.class, "exec-rules"));
-			this.execTimeWindow = metricRegistry.timer(name(Shepherd.class, "exec-window-rules"));
+			this.pendingElementToProcess = metricRegistry.counter(name("shepherd", "pending-obj"));
+			this.execTimeRules = metricRegistry.timer(name("shepherd", "exec-rules"));
+			this.execTimeWindow = metricRegistry.timer(name("shepherd", "exec-window-rules"));
 		} else {
 			this.metricRegistry = null;
 			this.pendingElementToProcess = null;

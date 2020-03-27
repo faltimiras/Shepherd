@@ -38,6 +38,11 @@ public class InMemoryListValuesStorage<K, V> implements ValuesStorage<K, V, List
 		storage.put(key, value);
 	}
 
+	@Override
+	public Iterable<K> keys() {
+		return storage.keySet();
+	}
+
 	Map<K, List<V>> getStorage() {
 		return storage;
 	}

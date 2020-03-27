@@ -23,4 +23,6 @@ public interface ValuesStorage<K, V, S> {
 
 	void override(K key, S value);
 
+	Iterable<K> keys();
+
 }

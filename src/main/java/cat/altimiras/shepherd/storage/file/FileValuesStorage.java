@@ -92,4 +92,9 @@ public class FileValuesStorage<K, V> implements ValuesStorage<K, V, Path> {
 	public void override(K key, Path value) {
 		throw new UnsupportedOperationException("File storage do not support it. Hint: If you needed you can code your own FileStorage");
 	}
+
+	@Override
+	public Iterable keys() {
+		return storage.keySet();
+	}
 }

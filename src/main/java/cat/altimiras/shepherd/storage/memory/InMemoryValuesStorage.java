@@ -30,7 +30,14 @@ public class InMemoryValuesStorage<K, V> implements ValuesStorage<K, V, V> {
 		storage.put(key, value);
 	}
 
+	@Override
+	public Iterable<K> keys() {
+		return storage.keySet();
+	}
+
 	Map<K, V> getStorage() {
 		return storage;
 	}
+
+
 }
