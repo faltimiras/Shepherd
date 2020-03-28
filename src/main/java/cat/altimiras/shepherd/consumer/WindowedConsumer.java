@@ -1,7 +1,7 @@
 package cat.altimiras.shepherd.consumer;
 
 import cat.altimiras.shepherd.InputValue;
-import cat.altimiras.shepherd.LazyValue;
+import cat.altimiras.shepherd.LazyValues;
 import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.Metrics;
 import cat.altimiras.shepherd.QueueConsumer;
@@ -22,9 +22,9 @@ import java.util.function.Consumer;
 public class WindowedConsumer<K, V, S> extends QueueConsumer<K, V, S> {
 
 	private final Scheduler scheduler;
-	private final RuleWindow<V,S> rulesWindow;
+	private final RuleWindow<V, S> rulesWindow;
 
-	public WindowedConsumer(MetadataStorage<K> metadataStorage, ValuesStorage<K, V, S> valuesStorage, List<Rule<V,S>> rules, RuleExecutor<V,S> ruleExecutor, BlockingQueue<InputValue<K, V>> queue, Scheduler scheduler, RuleWindow ruleWindow, Consumer<S> callback, Metrics metrics) {
+	public WindowedConsumer(MetadataStorage<K> metadataStorage, ValuesStorage<K, V, S> valuesStorage, List<Rule<V, S>> rules, RuleExecutor<V, S> ruleExecutor, BlockingQueue<InputValue<K, V>> queue, Scheduler scheduler, RuleWindow ruleWindow, Consumer<S> callback, Metrics metrics) {
 		super(metadataStorage, valuesStorage, rules, queue, ruleExecutor, callback, metrics);
 		this.scheduler = scheduler;
 		this.rulesWindow = ruleWindow;
@@ -73,7 +73,7 @@ public class WindowedConsumer<K, V, S> extends QueueConsumer<K, V, S> {
 			while (it.hasNext()) {
 				Metadata<K> metadata = it.next();
 
-				RuleResult<S> ruleResult = rulesWindow.canClose(metadata, new LazyValue(valuesStorage, metadata.getKey()));
+				RuleResult<S> ruleResult = rulesWindow.canClose(metadata, new LazyValues(valuesStorage, metadata.getKey()));
 
 				boolean needsToRemoveMetadataForThisKey = postProcess(metadata.getKey(), null, metadata, ruleResult);
 				if (needsToRemoveMetadataForThisKey) {

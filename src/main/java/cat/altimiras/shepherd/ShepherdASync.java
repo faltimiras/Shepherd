@@ -27,7 +27,7 @@ public class ShepherdASync<K, V, S> extends ShepherdBase<K, V, S> {
 	private final ExecutorService pool;
 	private final int threads;
 
-	ShepherdASync(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, int thread, Function keyExtractor, List<Rule<V,S>> rules, RuleExecutor<V,S> ruleExecutor, Consumer<S> callback, Window window, Metrics metrics, Clock clock) {
+	ShepherdASync(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, int thread, Function keyExtractor, List<Rule<V, S>> rules, RuleExecutor<V, S> ruleExecutor, Consumer<S> callback, Window window, Metrics metrics, Clock clock) {
 
 		super(keyExtractor, callback, ruleExecutor, thread, window, metrics, clock);
 
@@ -45,7 +45,7 @@ public class ShepherdASync<K, V, S> extends ShepherdBase<K, V, S> {
 		}
 	}
 
-	private void startConsumers(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, List<Rule<V,S>> rules, Window window) {
+	private void startConsumers(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, List<Rule<V, S>> rules, Window window) {
 		for (int i = 0; i < threads; i++) {
 			QueueConsumer qc = getAsyncConsumer(metadataStorageProvider, valuesStorageProvider, rules, window, i);
 			consumers.add(qc);
@@ -53,7 +53,7 @@ public class ShepherdASync<K, V, S> extends ShepherdBase<K, V, S> {
 		}
 	}
 
-	private QueueConsumer getAsyncConsumer(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, List<Rule<V,S>> rules, Window window, int index) {
+	private QueueConsumer getAsyncConsumer(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, List<Rule<V, S>> rules, Window window, int index) {
 		if (window != null) {
 			return new WindowedConsumer(
 					metadataStorageProvider.get(),
@@ -143,7 +143,7 @@ public class ShepherdASync<K, V, S> extends ShepherdBase<K, V, S> {
 	@Override
 	public void stop(boolean forceTimeout) {
 		if (forceTimeout) {
-			this.forceTimeout();
+			this.checkWindows();
 		}
 		pool.shutdown();
 	}

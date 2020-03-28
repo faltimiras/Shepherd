@@ -3,7 +3,6 @@ package cat.altimiras.shepherd;
 import cat.altimiras.shepherd.callback.ListCollector;
 import org.junit.Test;
 
-import java.util.Optional;
 import java.util.function.Function;
 
 import static junit.framework.TestCase.assertFalse;
@@ -14,22 +13,31 @@ import static org.mockito.Mockito.when;
 public class ShepherdASyncTest {
 
 	@Test
-	public void addNull() throws Exception{
+	public void addNull() throws Exception {
 		Object o = new Object();
 		Function keyExtractor = mock(Function.class);
 		when(keyExtractor.apply(o)).thenReturn(null);
 
-		ShepherdASync shepherd = ShepherdBuilder.create().basic(keyExtractor, Optional.empty(), new ListCollector()).build();
+		ShepherdASync shepherd = ShepherdBuilder.create()
+				.basic(keyExtractor,
+						new ListCollector())
+				.build();
+
 		assertFalse(shepherd.add(o));
 	}
 
 	@Test
-	public void add() throws Exception{
+	public void add() throws Exception {
 		Object o = new Object();
 		Function keyExtractor = mock(Function.class);
 		when(keyExtractor.apply(o)).thenReturn(o);
 
-		ShepherdASync shepherd = ShepherdBuilder.create().basic(keyExtractor, Optional.empty(), new ListCollector()).build();
+		ShepherdASync shepherd = ShepherdBuilder.create()
+				.basic(
+						keyExtractor,
+						new ListCollector())
+				.build();
+
 		assertTrue(shepherd.add(o));
 	}
 }

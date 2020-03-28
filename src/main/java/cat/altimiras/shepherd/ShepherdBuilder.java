@@ -8,15 +8,15 @@ import cat.altimiras.shepherd.rules.window.GroupAllTumblingWindowRule;
 import cat.altimiras.shepherd.scheduler.Scheduler;
 import cat.altimiras.shepherd.storage.MetadataStorage;
 import cat.altimiras.shepherd.storage.ValuesStorage;
-import cat.altimiras.shepherd.storage.memory.InMemoryMetadataStorage;
 import cat.altimiras.shepherd.storage.memory.InMemoryListValuesStorage;
+import cat.altimiras.shepherd.storage.memory.InMemoryMetadataStorage;
 import com.codahale.metrics.MetricRegistry;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -27,29 +27,27 @@ public class ShepherdBuilder<V, S> {
 	private final static Clock clock = Clock.systemUTC();
 	private int thread;
 	private Function keyExtractor;
-	private List<Rule<V,S>> rules;
+	private List<Rule<V, S>> rules;
 	private Consumer<S> callback;
 	private WindowBuilder<V> windowBuilder = null;
 	private MetricRegistry metrics = null;
-	private RuleExecutor<V,S> ruleExecutor = new CloseOrLastExecutor();
+	private RuleExecutor<V, S> ruleExecutor = new CloseOrLastExecutor();
 	private Supplier<MetadataStorage> metadataStorageProvider = InMemoryMetadataStorage::new;
 	private Supplier<ValuesStorage> valuesStorageProvider = InMemoryListValuesStorage::new;
 
 	private ShepherdBuilder() {
 	}
 
-	public static ShepherdBuilder create() {
-		return new ShepherdBuilder();
+	public ShepherdBuilder basic(Consumer<S> callback, List<Rule<V, S>> rules) throws Exception {
+		return basic(null, callback, rules);
 	}
 
-	public ShepherdBuilder basic(Optional<List<Rule<V,S>>> rules, Consumer<S> callback) throws Exception {
-		return basic(null, rules, callback);
-	}
-
-	public ShepherdBuilder basic(Function keyExtractor, Optional<List<Rule<V,S>>> rules, Consumer<S> callback) throws Exception {
+	public ShepherdBuilder basic(Function keyExtractor, Consumer<S> callback, List<Rule<V, S>> rules) throws Exception {
 
 		this.thread = 1;
-		rules.ifPresent(ruleList -> this.rules = Collections.unmodifiableList(ruleList));
+		if (rules != null && !rules.isEmpty()) {
+			this.rules = Collections.unmodifiableList(rules);
+		}
 
 		this.keyExtractor = keyExtractor;
 
@@ -60,8 +58,16 @@ public class ShepherdBuilder<V, S> {
 		return this;
 	}
 
+	public ShepherdBuilder basic(Consumer<S> callback, Rule<V, S>... rules) throws Exception {
+		return basic(null, callback, Arrays.asList(rules));
+	}
+
+	public ShepherdBuilder basic(Function keyExtractor, Consumer<S> callback, Rule<V, S>... rules) throws Exception {
+		return basic(keyExtractor, callback, Arrays.asList(rules));
+	}
+
 	public ShepherdBuilder basic(Consumer<S> callback) throws Exception {
-		return basic(null, Optional.empty(), callback);
+		return basic(null, callback, (List) null);
 	}
 
 	public ShepherdBuilder withRuleExecutor(RuleExecutor ruleExecutor) {
@@ -88,19 +94,6 @@ public class ShepherdBuilder<V, S> {
 		return this;
 	}
 
-	public ShepherdBuilder threads(int thread) {
-		if (thread < 1) {
-			throw new IllegalArgumentException("threads must be bigger than 0");
-		}
-		this.thread = thread;
-		return this;
-	}
-
-	public WindowBuilder withWindow(Duration precision, RuleWindow rule) {
-		this.windowBuilder = new WindowBuilder(this, precision, rule);
-		return this.windowBuilder;
-	}
-
 	public ShepherdBuilder withMonitoring(MetricRegistry metrics) {
 		if (metrics == null) {
 			throw new NullPointerException("MetricRegistry can not be null");
@@ -115,7 +108,7 @@ public class ShepherdBuilder<V, S> {
 	}
 
 	private ShepherdSync buildSync(Window window) {
-		if (thread != 1){
+		if (thread != 1) {
 			throw new IllegalArgumentException("Sync Shepherd must be mono thread");
 		}
 		return new ShepherdSync(metadataStorageProvider, valuesStorageProvider, keyExtractor, rules, ruleExecutor, callback, window, new Metrics(metrics), clock);
@@ -127,6 +120,40 @@ public class ShepherdBuilder<V, S> {
 
 	private ShepherdASync build(Window window) {
 		return new ShepherdASync(metadataStorageProvider, valuesStorageProvider, thread, keyExtractor, rules, ruleExecutor, callback, window, new Metrics(metrics), clock);
+	}
+
+	public ShepherdASync createFixedWindowAccumulator(Duration windowDuration, Consumer<S> callback) throws Exception {
+		ShepherdASync shepherd = ShepherdBuilder.create()
+				.basic(
+						new FixedKeyExtractor(),
+						callback,
+						(List) null)
+				.threads(1)
+				.withWindow(
+						windowDuration.dividedBy(4),
+						new GroupAllTumblingWindowRule(windowDuration))
+				.build();
+		return shepherd;
+	}
+
+	public WindowBuilder withWindow(Duration precision, RuleWindow rule) {
+		if (rule == null) {
+			throw new NullPointerException("Window rule can not be null");
+		}
+		this.windowBuilder = new WindowBuilder(this, precision, rule);
+		return this.windowBuilder;
+	}
+
+	public ShepherdBuilder threads(int thread) {
+		if (thread < 1) {
+			throw new IllegalArgumentException("threads must be bigger than 0");
+		}
+		this.thread = thread;
+		return this;
+	}
+
+	public static ShepherdBuilder create() {
+		return new ShepherdBuilder();
 	}
 
 	public static class WindowBuilder<T> {
@@ -171,19 +198,5 @@ public class ShepherdBuilder<V, S> {
 		public ShepherdSync buildSync() {
 			return this.shepherdBuilder.buildSync(new Window(rule, precision, schedulerProvider));
 		}
-	}
-
-	public ShepherdASync createFixedWindowAccumulator(Duration windowDuration, Consumer<S> callback ) throws Exception{
-		ShepherdASync shepherd = ShepherdBuilder.create()
-				.basic(
-						new FixedKeyExtractor(),
-						Optional.empty(),
-						callback)
-				.threads(1)
-				.withWindow(
-						windowDuration.dividedBy(4),
-						new GroupAllTumblingWindowRule(windowDuration))
-				.build();
-		return shepherd;
 	}
 }

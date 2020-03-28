@@ -24,7 +24,6 @@ public class BasicScheduler implements Scheduler {
 		if (firstTime) {
 			firstTime = false;
 			return maxTime;
-
 		}
 		long diff = clock.millis() - lastExecution;
 		return diff < maxTime ? maxTime - diff : 0;

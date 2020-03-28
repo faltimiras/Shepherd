@@ -14,8 +14,9 @@ Then just create an instance of Shepherd
 Shepherd shepherd = Shepherd.create()
     .basic(
         new FixedKeyExtractor(), 
-        Optional.of(Arrays.asList(new AccumulateNRule(2))),
-        listCollector)
+        listCollector,
+        new AccumulateNRule(2),
+        )
     .build();
 
 shepherd.add(1);
@@ -48,18 +49,17 @@ Rules are checked when a new element is added to shepherd instance.
 
 ```
 public interface Rule<V, S> {
-	RuleResult canClose(Metadata metadata, V value, LazyValue<?, V, S> lazyValue);
+	RuleResult canClose(Metadata metadata, V value, LazyValue<?, V, S> lazyValues);
 }
 ```
 
 - **metadata** keeps metadata for this still-open-group identified by they key.
 - **v** is the new element that has been added.
-- **lazyValue** give access to the rule to get already grouped elements.
+- **lazyValues** give access to the rule to get already grouped elements.
 
 - **RuleResult** tells to shepherd what has to be done with the new element added.
 3 actions can be defined: **Append** (or not) the value just added, **Discard** stored until this moment, **Close** the group and "released".
 RuleResult has a bunch of cool methods to build RuleResults easily.
-
 
 There are 6 already coded simple rules to cover simple cases: [Streaming rules](https://github.com/faltimiras/Shepherd/tree/master/src/main/java/cat/altimiras/shepherd/rules/streaming)
 
@@ -78,7 +78,7 @@ A part of streaming Rules that are evaluated when a new element is added, groups
 Decide if window must be closed or not it is decided by a RuleWindow that you can implement.
 
  ```
-RuleResult canClose(Metadata metadata, LazyValue<?, V, S> lazyValue);
+RuleResult canClose(Metadata metadata, LazyValue<?, V, S> lazyValues);
  ```
 
 This rule is checked against every key every some time (configurable), to close or not groups according time.
@@ -88,9 +88,11 @@ Extend TumblingWindowBaseRule or SlidingWindowBaseRule to take advantage of thei
  
  ```
 Shepherd shepherd = Shepherd.create()
-    .basic(new SimpleKeyExtractor(),
-         Optional.of(Arrays.asList(new NoDuplicatesRule())), 
-         listCollector)
+    .basic(
+        new SimpleKeyExtractor(),
+        listCollector,
+        new NoDuplicatesRule(), 
+        )
     .withWindow(
         Duration.ofMillis(5000), 
         new DiscardAllExpiredRule()
@@ -100,8 +102,37 @@ This piece of code removes duplicates during 5s windows. Basically first appeara
 
 **RuleExecutor**
 
-Rule executor is responsible to apply the rules to an record. By default Rules are executed independently (IndependentExecutor) but you can also chain them (second rule receives toKeep values from previous rule) or you can implement your own.
-To set up the executor, just: .setRuleExecutor(RuleExecutor ruleExecutor)
+Streaming rules are executed by default one after the other stopping at the first one that canClose, if no one of them can close, the storage is updated according last rule executed.
+
+This behaviour can be changed providing a custom implementation of RuleExecutor
+
+```
+RuleResult<S> execute(final Metadata metadata, final V newValue, LazyValue lazyValues, List<Rule<V, S>> rules);
+```
+
+ ```
+ Shepherd shepherd = Shepherd.create()
+     .basic(...)
+     .withRuleExecutor(myRuleExecutor)
+     .withWindow(
+         Duration.ofMillis(5000), 
+         new DiscardAllExpiredRule()
+     ).build();
+ ```
+
+Every group of elements has his own metadata instance, all rules shares and can update it.
+
+**Parallelism**
+
+Shepherds by default uses only one thread to execute streaming rules and to check opened windows. If this is not enough to handle the load, more threads can be added to parallelize the workload.
+
+ ```
+ Shepherd shepherd = Shepherd.create()
+     .basic(...)
+     .threads(5)
+     ).build();
+ ```
+
 
 **Monitoring**
 
@@ -117,6 +148,8 @@ Shepherd shepherd = Shepherd.create()
     .withMonitoring(metrics)
  ```
 
+Shepherd will add the avg time executing streaming rules, the avg time closing windows and the number of pending elements in the internal queue
+
 **Storage**
 
 Shepherd by default store "under construction" groups in memory, nevertheless it is configurable and storage can be totally custom via implementing ValuesStorage interface
@@ -124,6 +157,13 @@ Shepherd by default store "under construction" groups in memory, nevertheless it
 There are 2 alternatively value storages ready to use: [Redis](https://redis.io/) and Files system.
 
 Check examples on the tests.
+
+**Sync mode**
+
+Shepherd can be started in sync mode, then thread adding the new elements it evaluates also the streaming rules.
+On sync mode, windows are not closed, it must be done manually calling shepherd.checkWindows().
+
+Useful for testing.
  
 ## Built With
 

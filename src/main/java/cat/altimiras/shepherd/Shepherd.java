@@ -10,7 +10,7 @@ public interface Shepherd<K, V> {
 
 	boolean add(K key, V t);
 
-	void forceTimeout();
+	void checkWindows();
 
-	void stop(boolean forceTimeout);
+	void stop(boolean closeWindows);
 }

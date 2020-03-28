@@ -1,10 +1,8 @@
 package cat.altimiras.shepherd;
 
 import cat.altimiras.shepherd.callback.ListCollector;
-import com.codahale.metrics.CsvReporter;
 import org.junit.Test;
 
-import java.util.Optional;
 import java.util.function.Function;
 
 import static junit.framework.TestCase.assertFalse;
@@ -23,7 +21,6 @@ public class ShepherdSyncTest {
 		ShepherdSync shepherd = ShepherdBuilder.create()
 				.basic(
 						keyExtractor,
-						Optional.empty(),
 						new ListCollector())
 				.buildSync();
 
@@ -39,7 +36,6 @@ public class ShepherdSyncTest {
 		ShepherdSync shepherd = ShepherdBuilder.create()
 				.basic(
 						keyExtractor,
-						Optional.empty(),
 						new ListCollector())
 				.buildSync();
 

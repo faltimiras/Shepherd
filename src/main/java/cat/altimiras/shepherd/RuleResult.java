@@ -1,7 +1,5 @@
 package cat.altimiras.shepherd;
 
-import java.util.List;
-
 public class RuleResult<S> {
 
 	protected S group; //group output
@@ -13,19 +11,19 @@ public class RuleResult<S> {
 	RuleResult() {
 	}
 
+	public static <S> RuleResult<S> groupAndKeep(Object group, Object toKeep) {
+
+		RuleResult<S> ruleResult = RuleResultPool.borrow();
+		ruleResult.build(true, 0, 0, (S) group, (S) toKeep);
+		return ruleResult;
+	}
+
 	private void build(boolean canGroup, int append, int discard, S group, S toKeep) {
 		this.canClose = canGroup;
 		this.group = group;
 		this.toKeep = toKeep;
 		this.append = append;
 		this.discard = discard;
-	}
-
-	public static <S> RuleResult<S> groupAndKeep(Object group, Object toKeep) {
-
-		RuleResult<S> ruleResult = RuleResultPool.borrow();
-		ruleResult.build(true, 0, 0, (S)group, (S)toKeep);
-		return ruleResult;
 	}
 
 	public static <S> RuleResult<S> groupAndDiscard(S group) {

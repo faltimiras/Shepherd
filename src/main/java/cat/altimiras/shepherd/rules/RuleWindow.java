@@ -1,6 +1,6 @@
 package cat.altimiras.shepherd.rules;
 
-import cat.altimiras.shepherd.LazyValue;
+import cat.altimiras.shepherd.LazyValues;
 import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.RuleResult;
 
@@ -9,12 +9,30 @@ import java.util.Objects;
 
 public interface RuleWindow<V, S> {
 
-	RuleResult canClose(Metadata metadata, LazyValue<?, V, S> lazyValue);
+	/**
+	 * Decides if windows has to be closed or not.
+	 *
+	 * @param metadata   group metadata information
+	 * @param lazyValues already elements present on this group.
+	 * @return
+	 */
+	RuleResult canClose(Metadata metadata, LazyValues<?, V, S> lazyValues);
 
+	/**
+	 * @return true if it is an sliding window, false otherwise
+	 */
 	boolean isSliding();
 
+	/**
+	 * @return window duration
+	 */
 	Duration window();
 
+	/**
+	 * @param key     original key
+	 * @param eventTs event timestamp
+	 * @return return window key
+	 */
 	WindowKey adaptKey(Object key, long eventTs);
 
 	class WindowKey {

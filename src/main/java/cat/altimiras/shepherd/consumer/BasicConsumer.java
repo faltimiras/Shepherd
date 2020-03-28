@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 public class BasicConsumer<K, V, S> extends QueueConsumer<K, V, S> {
 
-	public BasicConsumer(MetadataStorage<K> metadataStorage, ValuesStorage<K, V, S> valuesStorage, List<Rule<V,S>> rules, BlockingQueue<InputValue<K, V>> queue, RuleExecutor<V,S> ruleExecutor, Consumer<S> callback, Metrics metrics) {
+	public BasicConsumer(MetadataStorage<K> metadataStorage, ValuesStorage<K, V, S> valuesStorage, List<Rule<V, S>> rules, BlockingQueue<InputValue<K, V>> queue, RuleExecutor<V, S> ruleExecutor, Consumer<S> callback, Metrics metrics) {
 		super(metadataStorage, valuesStorage, rules, queue, ruleExecutor, callback, metrics);
 	}
 

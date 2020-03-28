@@ -1,6 +1,6 @@
 package cat.altimiras.shepherd.rules.window;
 
-import cat.altimiras.shepherd.LazyValue;
+import cat.altimiras.shepherd.LazyValues;
 import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.RuleResult;
 import org.slf4j.Logger;
@@ -18,7 +18,7 @@ public class DiscardAllTumblingRule extends TumblingWindowBaseRule {
 	}
 
 	@Override
-	public RuleResult canClose(Metadata metadata, LazyValue lazyValue) {
+	public RuleResult canClose(Metadata metadata, LazyValues lazyValues) {
 
 		log.debug("Executing DiscardAllFixedRule check");
 

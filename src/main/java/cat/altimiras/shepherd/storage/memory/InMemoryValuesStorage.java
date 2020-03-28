@@ -3,7 +3,6 @@ package cat.altimiras.shepherd.storage.memory;
 import cat.altimiras.shepherd.storage.ValuesStorage;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class InMemoryValuesStorage<K, V> implements ValuesStorage<K, V, V> {

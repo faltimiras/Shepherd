@@ -1,7 +1,7 @@
 package cat.altimiras.shepherd.consumer;
 
 import cat.altimiras.shepherd.InputValue;
-import cat.altimiras.shepherd.LazyValue;
+import cat.altimiras.shepherd.LazyValues;
 import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.Metrics;
 import cat.altimiras.shepherd.RuleExecutor;
@@ -63,7 +63,7 @@ public class BasicConsumerTest {
 	public void firstNoGroup() {
 
 		when(metadataStorage.get(key)).thenReturn(null);
-		when(ruleExecutor.execute(any(Metadata.class), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.notGroup());
+		when(ruleExecutor.execute(any(Metadata.class), eq(object), any(LazyValues.class), eq(rules))).thenReturn(RuleResult.notGroup());
 
 		basicConsumer.consume(inputValue);
 
@@ -83,7 +83,7 @@ public class BasicConsumerTest {
 	public void secondNoGroup() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
-		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.notGroup());
+		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValues.class), eq(rules))).thenReturn(RuleResult.notGroup());
 
 		basicConsumer.consume(inputValue);
 
@@ -103,7 +103,7 @@ public class BasicConsumerTest {
 	public void groupAndDiscardAll() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
-		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.groupAndDiscardAll());
+		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValues.class), eq(rules))).thenReturn(RuleResult.groupAndDiscardAll());
 		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
@@ -123,7 +123,7 @@ public class BasicConsumerTest {
 	public void groupAndAppend() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
-		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.groupAndAppend());
+		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValues.class), eq(rules))).thenReturn(RuleResult.groupAndAppend());
 		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
@@ -143,7 +143,7 @@ public class BasicConsumerTest {
 	public void discardAndAppendAndGroup() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
-		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.discardAndAppendAndGroup());
+		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValues.class), eq(rules))).thenReturn(RuleResult.discardAndAppendAndGroup());
 		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
@@ -163,7 +163,7 @@ public class BasicConsumerTest {
 	public void appendAndGroup() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
-		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.appendAndGroup());
+		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValues.class), eq(rules))).thenReturn(RuleResult.appendAndGroup());
 		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
@@ -183,7 +183,7 @@ public class BasicConsumerTest {
 	public void appendAndGroupAndDiscard() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
-		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.appendAndGroupAndDiscard());
+		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValues.class), eq(rules))).thenReturn(RuleResult.appendAndGroupAndDiscard());
 		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
@@ -203,7 +203,7 @@ public class BasicConsumerTest {
 	public void groupAndDiscardAndAppend() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
-		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.groupAndDiscardAndAppend());
+		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValues.class), eq(rules))).thenReturn(RuleResult.groupAndDiscardAndAppend());
 		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
@@ -223,7 +223,7 @@ public class BasicConsumerTest {
 	public void notGroupAndAppend() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
-		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.notGroupAndAppend());
+		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValues.class), eq(rules))).thenReturn(RuleResult.notGroupAndAppend());
 		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
@@ -243,7 +243,7 @@ public class BasicConsumerTest {
 	public void notGroup() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
-		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.notGroup());
+		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValues.class), eq(rules))).thenReturn(RuleResult.notGroup());
 		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
@@ -263,7 +263,7 @@ public class BasicConsumerTest {
 	public void notGroupAndDiscardAll() {
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
-		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.notGroupAndDiscardAll());
+		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValues.class), eq(rules))).thenReturn(RuleResult.notGroupAndDiscardAll());
 		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
@@ -286,7 +286,7 @@ public class BasicConsumerTest {
 		List<Integer> toKeep = Arrays.asList(4, 5, 6);
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
-		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.groupAndKeep(toGroup, toKeep));
+		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValues.class), eq(rules))).thenReturn(RuleResult.groupAndKeep(toGroup, toKeep));
 		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
@@ -309,7 +309,7 @@ public class BasicConsumerTest {
 		List<Integer> toGroup = Arrays.asList(1, 2, 3);
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
-		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.groupAndDiscard(toGroup));
+		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValues.class), eq(rules))).thenReturn(RuleResult.groupAndDiscard(toGroup));
 		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);
@@ -332,7 +332,7 @@ public class BasicConsumerTest {
 		List<Integer> toKeep = Arrays.asList(1, 2, 3);
 
 		when(metadataStorage.get(key)).thenReturn(metadata);
-		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValue.class), eq(rules))).thenReturn(RuleResult.notGroupAndKeep(toKeep));
+		when(ruleExecutor.execute(eq(metadata), eq(object), any(LazyValues.class), eq(rules))).thenReturn(RuleResult.notGroupAndKeep(toKeep));
 		when(valuesStorage.get(key)).thenReturn(get);
 
 		basicConsumer.consume(inputValue);

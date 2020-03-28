@@ -1,6 +1,6 @@
 package cat.altimiras.shepherd.rules.streaming;
 
-import cat.altimiras.shepherd.LazyValue;
+import cat.altimiras.shepherd.LazyValues;
 import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.RuleResult;
 import cat.altimiras.shepherd.rules.Rule;
@@ -19,7 +19,7 @@ public class AccumulateNRule implements Rule<Object, List<Object>> {
 	}
 
 	@Override
-	public RuleResult canClose(Metadata metadata, Object value, LazyValue<?, Object, List<Object>> lazyValue) {
+	public RuleResult canClose(Metadata metadata, Object value, LazyValues<?, Object, List<Object>> lazyValues) {
 
 		long count = metadata.getElementsCount();
 		if (count == 0) {

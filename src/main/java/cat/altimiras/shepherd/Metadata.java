@@ -83,7 +83,7 @@ public class Metadata<K> {
 		this.elementsCount = this.elementsCount - value;
 	}
 
-	public void resetElementsCount(){
+	public void resetElementsCount() {
 		this.elementsCount = 0;
 	}
 }

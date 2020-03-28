@@ -10,7 +10,7 @@ import java.time.Duration;
  * Fixed window is not related to element added to the system, it depends on UTC.
  * Creating windows starting and closing at "o'clock"
  */
-public abstract class TumblingWindowBaseRule<V,S> extends WindowBaseRule<V,S> implements RuleWindow<V,S> {
+public abstract class TumblingWindowBaseRule<V, S> extends WindowBaseRule<V, S> implements RuleWindow<V, S> {
 
 	final private long delayed;
 
@@ -29,11 +29,16 @@ public abstract class TumblingWindowBaseRule<V,S> extends WindowBaseRule<V,S> im
 		return new WindowKey(key, calculateWindow(eventTs));
 	}
 
-	protected boolean isWindowOpen(Metadata<? extends  WindowKey> metadata) {
+	private long calculateWindow(long instant) {
+		long mod = instant % windowInMillis;
+		return instant + windowInMillis - mod;
+	}
+
+	protected boolean isWindowOpen(Metadata<? extends WindowKey> metadata) {
 		return !isWindowExpired(metadata);
 	}
 
-	protected boolean isWindowExpired(Metadata<? extends  WindowKey> metadata) {
+	protected boolean isWindowExpired(Metadata<? extends WindowKey> metadata) {
 
 		long now = clock.millis();
 
@@ -41,10 +46,5 @@ public abstract class TumblingWindowBaseRule<V,S> extends WindowBaseRule<V,S> im
 			return true;
 		}
 		return false;
-	}
-
-	private long calculateWindow(long instant) {
-		long mod = instant % windowInMillis;
-		return instant + windowInMillis - mod;
 	}
 }

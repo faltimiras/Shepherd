@@ -12,10 +12,5 @@ public interface MetadataStorage<K> {
 
 	Metadata<K> get(K key);
 
-	/**
-	 * Metadata elements must be provided in Oreder by ASC creationTime
-	 *
-	 * @return
-	 */
 	Iterator<Metadata<K>> values();
 }

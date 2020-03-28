@@ -1,8 +1,7 @@
 package cat.altimiras.shepherd.rules.window;
 
-import cat.altimiras.shepherd.LazyValue;
+import cat.altimiras.shepherd.LazyValues;
 import cat.altimiras.shepherd.Metadata;
-import cat.altimiras.shepherd.QueueConsumer;
 import cat.altimiras.shepherd.RuleResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,7 @@ public class DiscardAllExpiredRule extends SlidingWindowBaseRule {
 	}
 
 	@Override
-	public RuleResult canClose(Metadata metadata, LazyValue lazyValue) {
+	public RuleResult canClose(Metadata metadata, LazyValues lazyValues) {
 
 		log.debug("Executing DiscardAllExpireRule check");
 

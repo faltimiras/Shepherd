@@ -1,7 +1,5 @@
 package cat.altimiras.shepherd.storage;
 
-import java.util.List;
-
 /**
  * @param <K> Key type
  * @param <V> Value input type

@@ -3,10 +3,7 @@ package cat.altimiras.shepherd.storage.redis;
 import cat.altimiras.shepherd.storage.ValuesStorage;
 import cat.altimiras.shepherd.storage.serdes.BasicSerializer;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Response;
-import redis.clients.jedis.Transaction;
 
-import java.util.List;
 import java.util.function.Function;
 
 public class RedisValuesStorage implements ValuesStorage<Object, Object, String> {

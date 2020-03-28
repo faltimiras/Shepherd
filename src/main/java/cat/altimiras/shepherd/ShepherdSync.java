@@ -21,7 +21,7 @@ public class ShepherdSync<K, V, S> extends ShepherdBase<K, V, S> {
 
 	private final QueueConsumer<K, V, S> consumer;
 
-	ShepherdSync(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, Function keyExtractor, List<Rule<V,S>> rules, RuleExecutor<V,S> ruleExecutor, Consumer<S> callback, Window window, Metrics metrics, Clock clock) {
+	ShepherdSync(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, Function keyExtractor, List<Rule<V, S>> rules, RuleExecutor<V, S> ruleExecutor, Consumer<S> callback, Window window, Metrics metrics, Clock clock) {
 
 		super(keyExtractor, callback, ruleExecutor, 1, window, metrics, clock);
 
@@ -82,9 +82,9 @@ public class ShepherdSync<K, V, S> extends ShepherdBase<K, V, S> {
 	}
 
 	@Override
-	public void stop(boolean forceTimeout) {
-		if (forceTimeout) {
-			this.forceTimeout();
+	public void stop(boolean closeWindows) {
+		if (closeWindows) {
+			this.checkWindows();
 		}
 	}
 }

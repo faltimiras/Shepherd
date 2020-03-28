@@ -36,7 +36,7 @@ abstract class ShepherdBase<K, V, S> implements Shepherd<K, V> {
 		this.clock = clock;
 	}
 
-	public void forceTimeout() {
+	public void checkWindows() {
 		if (isWindowed) {
 			consumers.forEach((c -> ((WindowedConsumer) c).checkWindows()));
 		} else {

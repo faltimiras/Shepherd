@@ -26,7 +26,6 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
@@ -46,8 +45,8 @@ public class AsyncIntegrationTest {
 		ShepherdASync shepherd = ShepherdBuilder.create()
 				.basic(
 						new SimpleKeyExtractor(),
-						Optional.of(Collections.singletonList(new NoDuplicatesRule())),
-						listCollector)
+						listCollector,
+						new NoDuplicatesRule())
 				.threads(1)
 				.build();
 
@@ -73,8 +72,8 @@ public class AsyncIntegrationTest {
 		ShepherdASync shepherd = ShepherdBuilder.create()
 				.basic(
 						new SimpleKeyExtractor(),
-						Optional.of(Collections.singletonList(new AccumulateNRule(2))),
-						listCollector)
+						listCollector,
+						new AccumulateNRule(2))
 				.threads(1)
 				.build();
 
@@ -109,8 +108,8 @@ public class AsyncIntegrationTest {
 		ShepherdASync shepherd = ShepherdBuilder.create()
 				.basic(
 						new SimpleKeyExtractor(),
-						Optional.of(Collections.singletonList(new AccumulateNRule(2))),
-						listCollector)
+						listCollector,
+						new AccumulateNRule(2))
 				.threads(2)
 				.build();
 
@@ -143,8 +142,8 @@ public class AsyncIntegrationTest {
 		ShepherdASync shepherd = ShepherdBuilder.create()
 				.basic(
 						new SimpleKeyExtractor(),
-						Optional.of(Collections.singletonList(new AccumulateNRule(2))),
-						listCollector)
+						listCollector,
+						new AccumulateNRule(2))
 				.build();
 
 		shepherd.add(1);
@@ -183,8 +182,8 @@ public class AsyncIntegrationTest {
 		ShepherdASync shepherd = ShepherdBuilder.create()
 				.basic(
 						new SimpleKeyExtractor(),
-						Optional.of(Collections.singletonList(new NoDuplicatesRule())),
-						listCollector)
+						listCollector,
+						new NoDuplicatesRule())
 				.threads(1)
 				.withWindow(
 						Duration.ofMillis(10),
@@ -212,7 +211,6 @@ public class AsyncIntegrationTest {
 		ShepherdASync shepherd = ShepherdBuilder.create()
 				.basic(
 						new SimpleKeyExtractor(),
-						Optional.empty(),
 						listCollector)
 				.threads(1)
 				.withWindow(
@@ -242,8 +240,8 @@ public class AsyncIntegrationTest {
 		ShepherdASync shepherd = ShepherdBuilder.create()
 				.basic(
 						new FixedKeyExtractor(),
-						Optional.of(Collections.singletonList(new AccumulateRule())),
-						fileCollector)
+						fileCollector,
+						new AccumulateRule())
 				.threads(1)
 				.withValuesStorageProvider(FileValuesStorage::new)
 				.withWindow(
@@ -266,6 +264,21 @@ public class AsyncIntegrationTest {
 		deleteDir();
 	}
 
+	private void deleteDir() {
+		deleteDir(Paths.get(System.getProperty("java.io.tmpdir"), "shepherd"));
+	}
+
+	private void deleteDir(Path path) {
+		try {
+			Files.walk(path)
+					.sorted(Comparator.reverseOrder())
+					.map(Path::toFile)
+					.forEach(File::delete);
+		} catch (Exception e) {
+			//nothing to do
+		}
+	}
+
 	@Test
 	public void accumulateContentSlidingWindowsInRedis() throws Exception {
 
@@ -274,8 +287,8 @@ public class AsyncIntegrationTest {
 		ShepherdASync shepherd = ShepherdBuilder.create()
 				.basic(
 						new FixedKeyExtractor(),
-						Optional.of(Collections.singletonList(new AccumulateRule())),
-						binaryCollector)
+						binaryCollector,
+						new AccumulateRule())
 				.threads(1)
 				.withValuesStorageProvider(RedisValuesStorage::new)
 				.withWindow(
@@ -298,6 +311,11 @@ public class AsyncIntegrationTest {
 		cleanRedis(FixedKeyExtractor.KEY);
 	}
 
+	private void cleanRedis(String key) {
+		Jedis jedis = new Jedis();
+		jedis.del(key);
+	}
+
 	@Test
 	public void accumulateFixedWindowInMemory() throws Exception {
 
@@ -306,7 +324,6 @@ public class AsyncIntegrationTest {
 		ShepherdASync shepherd = ShepherdBuilder.create()
 				.basic(
 						new FixedKeyExtractor(),
-						Optional.empty(),
 						listCollector)
 				.threads(1)
 				.withWindow(
@@ -338,8 +355,8 @@ public class AsyncIntegrationTest {
 		ShepherdASync shepherd = ShepherdBuilder.create()
 				.basic(
 						new FixedKeyExtractor(),
-						Optional.of(Collections.singletonList(new SumRule())),
-						listCollector)
+						listCollector,
+						new SumRule())
 				.threads(1)
 				.withValuesStorageProvider(InMemoryValuesStorage::new)
 				.withWindow(
@@ -365,8 +382,8 @@ public class AsyncIntegrationTest {
 
 		ShepherdASync shepherd = ShepherdBuilder.create()
 				.basic(
-						Optional.of(Collections.singletonList(new SumRule())),
-						listCollector)
+						listCollector,
+						new SumRule())
 				.threads(1)
 				.withValuesStorageProvider(InMemoryValuesStorage::new)
 				.withWindow(
@@ -385,26 +402,5 @@ public class AsyncIntegrationTest {
 		assertEquals(2, result.size());
 		assertEquals(20.0, result.get(0).longValue(), 0);
 		assertEquals(11.0, result.get(1).longValue(), 0);
-	}
-
-
-	private void deleteDir() {
-		deleteDir(Paths.get(System.getProperty("java.io.tmpdir"), "shepherd"));
-	}
-
-	private void deleteDir(Path path) {
-		try {
-			Files.walk(path)
-					.sorted(Comparator.reverseOrder())
-					.map(Path::toFile)
-					.forEach(File::delete);
-		} catch (Exception e) {
-			//nothing to do
-		}
-	}
-
-	private void cleanRedis(String key) {
-		Jedis jedis = new Jedis();
-		jedis.del(key);
 	}
 }

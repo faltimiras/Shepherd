@@ -12,7 +12,7 @@ import java.util.Date;
 /**
  * Sliding windows depends on creation or lastElement arrival, so every key has a different window.
  */
-public abstract class SlidingWindowBaseRule<K,V,S> extends WindowBaseRule<V,S> implements RuleWindow<V,S> {
+public abstract class SlidingWindowBaseRule<K, V, S> extends WindowBaseRule<V, S> implements RuleWindow<V, S> {
 
 	private static Logger log = LoggerFactory.getLogger(SlidingWindowBaseRule.class);
 

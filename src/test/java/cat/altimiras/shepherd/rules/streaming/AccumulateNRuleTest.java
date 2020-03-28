@@ -11,7 +11,7 @@ import static org.junit.Assert.assertTrue;
 public class AccumulateNRuleTest {
 
 	@Test
-	public void first(){
+	public void first() {
 
 		AccumulateNRule accumulateNRule = new AccumulateNRule(3);
 
@@ -24,7 +24,7 @@ public class AccumulateNRuleTest {
 	}
 
 	@Test
-	public void accumulate(){
+	public void accumulate() {
 
 		AccumulateNRule accumulateNRule = new AccumulateNRule(2);
 
@@ -38,7 +38,7 @@ public class AccumulateNRuleTest {
 	}
 
 	@Test
-	public void noAccumulate(){
+	public void noAccumulate() {
 
 		AccumulateNRule accumulateNRule = new AccumulateNRule(3);
 

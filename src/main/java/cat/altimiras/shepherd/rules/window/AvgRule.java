@@ -1,6 +1,6 @@
 package cat.altimiras.shepherd.rules.window;
 
-import cat.altimiras.shepherd.LazyValue;
+import cat.altimiras.shepherd.LazyValues;
 import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.RuleResult;
 import org.slf4j.Logger;
@@ -26,7 +26,7 @@ public class AvgRule extends TumblingWindowBaseRule<Number, Number> {
 	}
 
 	@Override
-	public RuleResult canClose(Metadata metadata, LazyValue<?, Number, Number> lazyValue) {
+	public RuleResult canClose(Metadata metadata, LazyValues<?, Number, Number> lazyValues) {
 
 		if (isWindowExpired(metadata)) {
 			log.debug("Windows is expired, calculating avg and closing it");
@@ -34,7 +34,7 @@ public class AvgRule extends TumblingWindowBaseRule<Number, Number> {
 			if (count == 0) {
 				return RuleResult.groupAndDiscard(0);
 			} else {
-				return RuleResult.groupAndDiscard(lazyValue.get().doubleValue() / count);
+				return RuleResult.groupAndDiscard(lazyValues.get().doubleValue() / count);
 			}
 		}
 		return RuleResult.notGroup();

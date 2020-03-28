@@ -30,7 +30,7 @@ public class InMemoryListValuesStorage<K, V> implements ValuesStorage<K, V, List
 	@Override
 	public List<V> get(K key) {
 		List<V> values = storage.get(key);
-		return values == null ? null :Collections.unmodifiableList(storage.get(key));
+		return values == null ? null : Collections.unmodifiableList(storage.get(key));
 	}
 
 	@Override

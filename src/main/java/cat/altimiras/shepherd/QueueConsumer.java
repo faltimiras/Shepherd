@@ -44,7 +44,7 @@ public abstract class QueueConsumer<K, V, S> implements Runnable {
 			metadata.setLastElementTs(t.getIngestionTs());
 
 			if (rules != null) {
-				RuleResult ruleResult = ruleExecutor.execute(metadata, t.getValue(), new LazyValue(valuesStorage, t.getKey()), rules);
+				RuleResult ruleResult = ruleExecutor.execute(metadata, t.getValue(), new LazyValues(valuesStorage, t.getKey()), rules);
 				boolean needsToRemoveMetadataForThisKey = postProcess(t.getKey(), t.getValue(), metadata, ruleResult);
 				if (needsToRemoveMetadataForThisKey) {
 					metadataStorage.remove(t.getKey());

@@ -4,8 +4,6 @@ import cat.altimiras.shepherd.rules.window.GroupAllExpiredRule;
 import org.junit.Test;
 
 import java.time.Duration;
-import java.util.Optional;
-import java.util.function.Function;
 
 public class ShepherdBuilderTest {
 
@@ -13,8 +11,7 @@ public class ShepherdBuilderTest {
 	public void threadsNegative() throws Exception {
 		ShepherdBuilder.create()
 				.basic(
-						new DummyKeyExtractor(),
-						Optional.empty(), (a) -> {
+						(a) -> {
 						})
 				.threads(-1);
 	}
@@ -23,8 +20,7 @@ public class ShepherdBuilderTest {
 	public void threads0() throws Exception {
 		ShepherdBuilder.create()
 				.basic(
-						new DummyKeyExtractor(),
-						Optional.empty(), (a) -> {
+						(a) -> {
 						})
 				.threads(0);
 	}
@@ -33,8 +29,6 @@ public class ShepherdBuilderTest {
 	public void nullCallback() throws Exception {
 		ShepherdBuilder.create()
 				.basic(
-						new DummyKeyExtractor(),
-						Optional.empty(),
 						null);
 	}
 
@@ -53,12 +47,4 @@ public class ShepherdBuilderTest {
 						Duration.ofMillis(1),
 						null);
 	}
-
-	private class DummyKeyExtractor implements Function {
-		@Override
-		public Object apply(Object o) {
-			return null;
-		}
-	}
-
 }
