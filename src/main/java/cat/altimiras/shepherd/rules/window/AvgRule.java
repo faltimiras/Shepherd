@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Clock;
 import java.time.Duration;
 
-public class AvgRule extends FixedWindowBaseRule<Number, Number> {
+public class AvgRule extends TumblingWindowBaseRule<Number, Number> {
 
 	private static Logger log = LoggerFactory.getLogger(GroupAllExpiredRule.class);
 

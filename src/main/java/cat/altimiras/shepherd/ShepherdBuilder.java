@@ -4,7 +4,7 @@ import cat.altimiras.shepherd.executor.CloseOrLastExecutor;
 import cat.altimiras.shepherd.rules.Rule;
 import cat.altimiras.shepherd.rules.RuleWindow;
 import cat.altimiras.shepherd.rules.keyextractors.FixedKeyExtractor;
-import cat.altimiras.shepherd.rules.window.GroupAllFixedWindowRule;
+import cat.altimiras.shepherd.rules.window.GroupAllTumblingWindowRule;
 import cat.altimiras.shepherd.scheduler.Scheduler;
 import cat.altimiras.shepherd.storage.MetadataStorage;
 import cat.altimiras.shepherd.storage.ValuesStorage;
@@ -182,7 +182,7 @@ public class ShepherdBuilder<V, S> {
 				.threads(1)
 				.withWindow(
 						windowDuration.dividedBy(4),
-						new GroupAllFixedWindowRule(windowDuration))
+						new GroupAllTumblingWindowRule(windowDuration))
 				.build();
 		return shepherd;
 	}

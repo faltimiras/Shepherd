@@ -10,11 +10,11 @@ import java.time.Duration;
  * Fixed window is not related to element added to the system, it depends on UTC.
  * Creating windows starting and closing at "o'clock"
  */
-public abstract class FixedWindowBaseRule<V,S> extends WindowBaseRule<V,S> implements RuleWindow<V,S> {
+public abstract class TumblingWindowBaseRule<V,S> extends WindowBaseRule<V,S> implements RuleWindow<V,S> {
 
 	final private long delayed;
 
-	public FixedWindowBaseRule(Duration window, Duration delayed, Clock clock) {
+	public TumblingWindowBaseRule(Duration window, Duration delayed, Clock clock) {
 		super(window, clock);
 		this.delayed = delayed.toMillis();
 	}

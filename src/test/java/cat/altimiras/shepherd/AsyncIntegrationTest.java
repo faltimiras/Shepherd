@@ -11,12 +11,10 @@ import cat.altimiras.shepherd.rules.streaming.SumRule;
 import cat.altimiras.shepherd.rules.window.AvgRule;
 import cat.altimiras.shepherd.rules.window.DiscardAllExpiredRule;
 import cat.altimiras.shepherd.rules.window.GroupAllExpiredRule;
-import cat.altimiras.shepherd.rules.window.GroupAllFixedWindowRule;
+import cat.altimiras.shepherd.rules.window.GroupAllTumblingWindowRule;
 import cat.altimiras.shepherd.storage.file.FileValuesStorage;
 import cat.altimiras.shepherd.storage.memory.InMemoryValuesStorage;
 import cat.altimiras.shepherd.storage.redis.RedisValuesStorage;
-import com.codahale.metrics.ConsoleReporter;
-import com.codahale.metrics.MetricRegistry;
 import org.junit.Test;
 import redis.clients.jedis.Jedis;
 
@@ -29,9 +27,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
@@ -316,7 +311,7 @@ public class AsyncIntegrationTest {
 				.threads(1)
 				.withWindow(
 						Duration.ofMillis(10),
-						new GroupAllFixedWindowRule(Duration.ofMillis(100)))
+						new GroupAllTumblingWindowRule(Duration.ofMillis(100)))
 				.build();
 
 		shepherd.add("lolo", 0);
