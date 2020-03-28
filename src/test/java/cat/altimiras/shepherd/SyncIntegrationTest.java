@@ -146,8 +146,8 @@ public class SyncIntegrationTest {
 
 		//2 repeated element in the same window
 		long instant = System.currentTimeMillis();
-		shepherd.add(1, instant - 1000l);
-		shepherd.add(1, instant - 999l);
+		shepherd.add(1, instant - 1000L);
+		shepherd.add(1, instant - 999L);
 
 		shepherd.checkWindows(); //trigger window checker execution
 
@@ -382,10 +382,10 @@ public class SyncIntegrationTest {
 						new AvgRule(Duration.ofMillis(200), Duration.ofMillis(100)))
 				.buildSync();
 
-		shepherd.add("k1", Long.valueOf(10), 0);
-		shepherd.add("k2", Long.valueOf(11), 0);
-		shepherd.add("k1", Long.valueOf(20), 10);
-		shepherd.add("k1", Long.valueOf(30), 110);
+		shepherd.add("k1", 10L, 0);
+		shepherd.add("k2", 11L, 0);
+		shepherd.add("k1", 20L, 10);
+		shepherd.add("k1", 30L, 110);
 
 		shepherd.checkWindows();
 

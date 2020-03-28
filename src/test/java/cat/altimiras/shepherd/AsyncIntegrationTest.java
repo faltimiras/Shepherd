@@ -23,7 +23,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -35,7 +34,7 @@ import static org.junit.Assert.assertEquals;
 public class AsyncIntegrationTest {
 
 	//This test contains sleeps to replicate real life (of course without exit) but it is useful to double check and understand.
-	//Due to async & multithread approach there is no other way to "test" it. Suggestion on how to do it better, of course are always welcome.
+	//Due to async & multi thread approach there is no other way to "test" it. Suggestion on how to do it better, of course are always welcome.
 
 	@Test
 	public void noDuplicates() throws Exception {
@@ -226,7 +225,7 @@ public class AsyncIntegrationTest {
 
 		assertEquals(3, listCollector.size());
 		List<List<String>> result = listCollector.get();
-		Collections.sort(result, Comparator.comparing(strings -> strings.get(0))); //order is not deterministic
+		result.sort(Comparator.comparing(strings -> strings.get(0))); //order is not deterministic
 		assertEquals("lala", result.get(0).get(0));
 		assertEquals("lele", result.get(1).get(0));
 		assertEquals("lolo", result.get(2).get(0));
@@ -264,21 +263,6 @@ public class AsyncIntegrationTest {
 		deleteDir();
 	}
 
-	private void deleteDir() {
-		deleteDir(Paths.get(System.getProperty("java.io.tmpdir"), "shepherd"));
-	}
-
-	private void deleteDir(Path path) {
-		try {
-			Files.walk(path)
-					.sorted(Comparator.reverseOrder())
-					.map(Path::toFile)
-					.forEach(File::delete);
-		} catch (Exception e) {
-			//nothing to do
-		}
-	}
-
 	@Test
 	public void accumulateContentSlidingWindowsInRedis() throws Exception {
 
@@ -311,11 +295,6 @@ public class AsyncIntegrationTest {
 		cleanRedis(FixedKeyExtractor.KEY);
 	}
 
-	private void cleanRedis(String key) {
-		Jedis jedis = new Jedis();
-		jedis.del(key);
-	}
-
 	@Test
 	public void accumulateFixedWindowInMemory() throws Exception {
 
@@ -338,7 +317,7 @@ public class AsyncIntegrationTest {
 		await().atMost(5, SECONDS).until(() -> listCollector.size() == 2);
 
 		List<List<String>> result = listCollector.get();
-		Collections.sort(result, Comparator.comparing(list -> list.size()));
+		result.sort(Comparator.comparing(List::size));
 		assertEquals(2, result.size());
 		assertEquals(1, result.get(0).size());
 		assertEquals("lele", result.get(0).get(0));
@@ -391,10 +370,10 @@ public class AsyncIntegrationTest {
 						new AvgRule(Duration.ofMillis(200), Duration.ofMillis(100)))
 				.build();
 
-		shepherd.add("k1", Long.valueOf(10), 0);
-		shepherd.add("k2", Long.valueOf(11), 0);
-		shepherd.add("k1", Long.valueOf(20), 10);
-		shepherd.add("k1", Long.valueOf(30), 110);
+		shepherd.add("k1", 10L, 0);
+		shepherd.add("k2", 11L, 0);
+		shepherd.add("k1", 20L, 10);
+		shepherd.add("k1", 30L, 110);
 
 		await().atMost(5, SECONDS).until(() -> listCollector.size() == 2);
 
@@ -402,5 +381,25 @@ public class AsyncIntegrationTest {
 		assertEquals(2, result.size());
 		assertEquals(20.0, result.get(0).longValue(), 0);
 		assertEquals(11.0, result.get(1).longValue(), 0);
+	}
+
+	private void deleteDir() {
+		deleteDir(Paths.get(System.getProperty("java.io.tmpdir"), "shepherd"));
+	}
+
+	private void deleteDir(Path path) {
+		try {
+			Files.walk(path)
+					.sorted(Comparator.reverseOrder())
+					.map(Path::toFile)
+					.forEach(File::delete);
+		} catch (Exception e) {
+			//nothing to do
+		}
+	}
+
+	private void cleanRedis(String key) {
+		Jedis jedis = new Jedis();
+		jedis.del(key);
 	}
 }
