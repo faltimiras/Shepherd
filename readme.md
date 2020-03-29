@@ -72,6 +72,8 @@ Callback it is just a Consumer Java functional interface.
 
 There is a simple already coded Callback that accumulates results: ListCollector
 
+WARNING: slow callback codes impact on shepherd performance and accuracy, consider to execute them in another thread.
+
 **Windows**
 
 A part of streaming Rules that are evaluated when a new element is added, groups can be closed when a time window expires.
