@@ -109,7 +109,7 @@ public class ShepherdASync<K, V, S> extends ShepherdBase<K, V, S> {
 				InputValue inputValue;
 				if (isWindowed) {
 					//timestamp is part of the key, timestamp to expire the key is the after now + duration
-					inputValue = new InputValue(v, window.getRule().adaptKey(key, timestamp), clock.millis());
+					inputValue = new InputValue(v, window.getRule().adaptKey(key, timestamp), timestamp);
 				} else {
 					inputValue = new InputValue(v, key, timestamp);
 				}
@@ -147,6 +147,4 @@ public class ShepherdASync<K, V, S> extends ShepherdBase<K, V, S> {
 		}
 		pool.shutdown();
 	}
-
-
 }

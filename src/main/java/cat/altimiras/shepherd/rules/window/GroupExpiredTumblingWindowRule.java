@@ -9,19 +9,19 @@ import org.slf4j.LoggerFactory;
 import java.time.Clock;
 import java.time.Duration;
 
-public class GroupAllTumblingWindowRule extends TumblingWindowBaseRule {
+public class GroupExpiredTumblingWindowRule extends TumblingWindowBaseRule {
 
-	private static Logger log = LoggerFactory.getLogger(GroupAllTumblingWindowRule.class);
+	private static Logger log = LoggerFactory.getLogger(GroupExpiredTumblingWindowRule.class);
 
-	GroupAllTumblingWindowRule(Duration window, Duration delay, Clock clock) {
+	GroupExpiredTumblingWindowRule(Duration window, Duration delay, Clock clock) {
 		super(window, delay, clock);
 	}
 
-	public GroupAllTumblingWindowRule(Duration window, Duration delay) {
+	public GroupExpiredTumblingWindowRule(Duration window, Duration delay) {
 		super(window, delay, Clock.systemUTC());
 	}
 
-	public GroupAllTumblingWindowRule(Duration window) {
+	public GroupExpiredTumblingWindowRule(Duration window) {
 		super(window, Duration.ofMillis(0), Clock.systemUTC());
 	}
 

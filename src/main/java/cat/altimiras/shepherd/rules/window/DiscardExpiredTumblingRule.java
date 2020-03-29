@@ -9,11 +9,11 @@ import org.slf4j.LoggerFactory;
 import java.time.Clock;
 import java.time.Duration;
 
-public class DiscardAllTumblingRule extends TumblingWindowBaseRule {
+public class DiscardExpiredTumblingRule extends TumblingWindowBaseRule {
 
-	private static Logger log = LoggerFactory.getLogger(DiscardAllTumblingRule.class);
+	private static Logger log = LoggerFactory.getLogger(DiscardExpiredTumblingRule.class);
 
-	public DiscardAllTumblingRule(Duration window, Duration delayed) {
+	public DiscardExpiredTumblingRule(Duration window, Duration delayed) {
 		super(window, delayed, Clock.systemUTC());
 	}
 

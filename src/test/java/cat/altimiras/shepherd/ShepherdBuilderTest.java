@@ -1,6 +1,6 @@
 package cat.altimiras.shepherd;
 
-import cat.altimiras.shepherd.rules.window.GroupAllExpiredRule;
+import cat.altimiras.shepherd.rules.window.GroupExpiredSlidingRule;
 import org.junit.Test;
 
 import java.time.Duration;
@@ -37,7 +37,7 @@ public class ShepherdBuilderTest {
 		ShepherdBuilder.create()
 				.withWindow(
 						null,
-						new GroupAllExpiredRule(null, false));
+						new GroupExpiredSlidingRule(null, false));
 	}
 
 	@Test(expected = NullPointerException.class)

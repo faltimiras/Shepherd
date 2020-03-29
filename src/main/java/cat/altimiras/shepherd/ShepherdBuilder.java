@@ -3,8 +3,6 @@ package cat.altimiras.shepherd;
 import cat.altimiras.shepherd.executor.CloseOrLastExecutor;
 import cat.altimiras.shepherd.rules.Rule;
 import cat.altimiras.shepherd.rules.RuleWindow;
-import cat.altimiras.shepherd.rules.keyextractors.FixedKeyExtractor;
-import cat.altimiras.shepherd.rules.window.GroupAllTumblingWindowRule;
 import cat.altimiras.shepherd.scheduler.Scheduler;
 import cat.altimiras.shepherd.storage.MetadataStorage;
 import cat.altimiras.shepherd.storage.ValuesStorage;
@@ -122,25 +120,22 @@ public class ShepherdBuilder<V, S> {
 		return new ShepherdASync(metadataStorageProvider, valuesStorageProvider, thread, keyExtractor, rules, ruleExecutor, callback, window, new Metrics(metrics), clock);
 	}
 
-	public ShepherdASync createFixedWindowAccumulator(Duration windowDuration, Consumer<S> callback) throws Exception {
-		ShepherdASync shepherd = ShepherdBuilder.create()
-				.basic(
-						new FixedKeyExtractor(),
-						callback,
-						(List) null)
-				.threads(1)
-				.withWindow(
-						windowDuration.dividedBy(4),
-						new GroupAllTumblingWindowRule(windowDuration))
-				.build();
-		return shepherd;
-	}
-
 	public WindowBuilder withWindow(Duration precision, RuleWindow rule) {
 		if (rule == null) {
 			throw new NullPointerException("Window rule can not be null");
 		}
+		if (precision == null) {
+			throw new NullPointerException("Precision can not be null");
+		}
 		this.windowBuilder = new WindowBuilder(this, precision, rule);
+		return this.windowBuilder;
+	}
+
+	public WindowBuilder withWindow(RuleWindow rule) {
+		if (rule == null) {
+			throw new NullPointerException("Window rule can not be null");
+		}
+		this.windowBuilder = new WindowBuilder(this, Duration.ofSeconds(10), rule);
 		return this.windowBuilder;
 	}
 

@@ -20,10 +20,10 @@ public class SlidingWindowRuleTest {
 		Clock clock = mock(Clock.class);
 		when(clock.millis()).thenReturn(113l);
 
-		GroupAllExpiredRule groupAllExpiredRule = new GroupAllExpiredRule(Duration.ofMillis(100l), clock, false);
+		GroupExpiredSlidingRule groupExpiredSlidingRule = new GroupExpiredSlidingRule(Duration.ofMillis(100l), clock, false);
 
 		Metadata metadata = new Metadata("key", 12);
-		RuleResult ruleResult = groupAllExpiredRule.canClose(metadata, null);
+		RuleResult ruleResult = groupExpiredSlidingRule.canClose(metadata, null);
 
 		assertTrue(ruleResult.canClose());
 	}
@@ -34,10 +34,10 @@ public class SlidingWindowRuleTest {
 		Clock clock = mock(Clock.class);
 		when(clock.millis()).thenReturn(110l);
 
-		GroupAllExpiredRule groupAllExpiredRule = new GroupAllExpiredRule(Duration.ofMillis(100l), clock, false);
+		GroupExpiredSlidingRule groupExpiredSlidingRule = new GroupExpiredSlidingRule(Duration.ofMillis(100l), clock, false);
 
 		Metadata metadata = new Metadata("key", 12);
-		RuleResult ruleResult = groupAllExpiredRule.canClose(metadata, null);
+		RuleResult ruleResult = groupExpiredSlidingRule.canClose(metadata, null);
 
 		assertFalse(ruleResult.canClose());
 	}
@@ -48,11 +48,11 @@ public class SlidingWindowRuleTest {
 		Clock clock = mock(Clock.class);
 		when(clock.millis()).thenReturn(113l);
 
-		GroupAllExpiredRule groupAllExpiredRule = new GroupAllExpiredRule(Duration.ofMillis(100l), clock, true);
+		GroupExpiredSlidingRule groupExpiredSlidingRule = new GroupExpiredSlidingRule(Duration.ofMillis(100l), clock, true);
 
 		Metadata metadata = new Metadata("key", 12000l);
 		metadata.setLastElementTs(12l);
-		RuleResult ruleResult = groupAllExpiredRule.canClose(metadata, null);
+		RuleResult ruleResult = groupExpiredSlidingRule.canClose(metadata, null);
 
 		assertTrue(ruleResult.canClose());
 	}
@@ -63,11 +63,11 @@ public class SlidingWindowRuleTest {
 		Clock clock = mock(Clock.class);
 		when(clock.millis()).thenReturn(110l);
 
-		GroupAllExpiredRule groupAllExpiredRule = new GroupAllExpiredRule(Duration.ofMillis(100l), clock, true);
+		GroupExpiredSlidingRule groupExpiredSlidingRule = new GroupExpiredSlidingRule(Duration.ofMillis(100l), clock, true);
 
 		Metadata metadata = new Metadata("key", 120000l);
 		metadata.setLastElementTs(12l);
-		RuleResult ruleResult = groupAllExpiredRule.canClose(metadata, null);
+		RuleResult ruleResult = groupExpiredSlidingRule.canClose(metadata, null);
 
 		assertFalse(ruleResult.canClose());
 	}

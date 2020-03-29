@@ -9,18 +9,18 @@ import org.slf4j.LoggerFactory;
 import java.time.Clock;
 import java.time.Duration;
 
-public class DiscardAllExpiredRule extends SlidingWindowBaseRule {
+public class GroupExpiredSlidingRule extends SlidingWindowBaseRule {
 
-	private static Logger log = LoggerFactory.getLogger(DiscardAllExpiredRule.class);
+	private static Logger log = LoggerFactory.getLogger(GroupExpiredSlidingRule.class);
 
 	final private boolean fromLastElement;
 
-	public DiscardAllExpiredRule(Duration window) {
-		super(window, Clock.systemUTC());
-		this.fromLastElement = false;
+	GroupExpiredSlidingRule(Duration window, Clock clock, boolean fromLastElement) {
+		super(window, clock);
+		this.fromLastElement = fromLastElement;
 	}
 
-	public DiscardAllExpiredRule(Duration window, boolean fromLastElement) {
+	public GroupExpiredSlidingRule(Duration window, boolean fromLastElement) {
 		super(window, Clock.systemUTC());
 		this.fromLastElement = fromLastElement;
 	}
@@ -28,11 +28,11 @@ public class DiscardAllExpiredRule extends SlidingWindowBaseRule {
 	@Override
 	public RuleResult canClose(Metadata metadata, LazyValues lazyValues) {
 
-		log.debug("Executing DiscardAllExpireRule check");
+		log.debug("Executing GroupAllExpiredRule check");
 
 		if (isWindowExpired(metadata, fromLastElement)) {
 			log.debug("Windows is expired, closing it");
-			return RuleResult.notGroupAndDiscardAll();
+			return RuleResult.groupAndDiscardAll();
 		}
 		return RuleResult.notGroup();
 	}

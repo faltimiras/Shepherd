@@ -1,6 +1,8 @@
 # Shepherd
 
-Group elements according "live" rules executed asynchronously or on sliding or tumbling time windows.
+Group elements according streaming rules executed asynchronously or on sliding or tumbling time windows.
+
+![Catalan shepherd dog AKA: gos d'atura](gosdatura.jpg)
 
 ## Getting Started
 

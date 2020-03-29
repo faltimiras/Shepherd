@@ -8,10 +8,10 @@ import cat.altimiras.shepherd.rules.streaming.AccumulateNRule;
 import cat.altimiras.shepherd.rules.streaming.AccumulateRule;
 import cat.altimiras.shepherd.rules.streaming.NoDuplicatesRule;
 import cat.altimiras.shepherd.rules.streaming.SumRule;
-import cat.altimiras.shepherd.rules.window.AvgRule;
-import cat.altimiras.shepherd.rules.window.DiscardAllExpiredRule;
-import cat.altimiras.shepherd.rules.window.GroupAllExpiredRule;
-import cat.altimiras.shepherd.rules.window.GroupAllTumblingWindowRule;
+import cat.altimiras.shepherd.rules.window.AvgTumblingRule;
+import cat.altimiras.shepherd.rules.window.DiscardExpiredSlidingRule;
+import cat.altimiras.shepherd.rules.window.GroupExpiredSlidingRule;
+import cat.altimiras.shepherd.rules.window.GroupExpiredTumblingWindowRule;
 import cat.altimiras.shepherd.storage.file.FileValuesStorage;
 import cat.altimiras.shepherd.storage.memory.InMemoryValuesStorage;
 import cat.altimiras.shepherd.storage.redis.RedisValuesStorage;
@@ -141,7 +141,7 @@ public class SyncIntegrationTest {
 				.threads(1)
 				.withWindow(
 						Duration.ofMillis(10),
-						new DiscardAllExpiredRule(Duration.ofMillis(50), false))
+						new DiscardExpiredSlidingRule(Duration.ofMillis(50), false))
 				.buildSync();
 
 		//2 repeated element in the same window
@@ -173,7 +173,7 @@ public class SyncIntegrationTest {
 				.threads(1)
 				.withWindow(
 						Duration.ofMillis(10),
-						new GroupAllExpiredRule(Duration.ofMillis(100), false))
+						new GroupExpiredSlidingRule(Duration.ofMillis(100), false))
 				.buildSync();
 
 		long instant = System.currentTimeMillis() - 1000;
@@ -204,7 +204,7 @@ public class SyncIntegrationTest {
 				.withValuesStorageProvider(FileValuesStorage::new)
 				.withWindow(
 						Duration.ofMillis(10),
-						new GroupAllExpiredRule(Duration.ofMillis(1000), false))
+						new GroupExpiredSlidingRule(Duration.ofMillis(1000), false))
 				.buildSync();
 
 		long instant = System.currentTimeMillis() - 1100;
@@ -252,7 +252,7 @@ public class SyncIntegrationTest {
 				.withValuesStorageProvider(RedisValuesStorage::new)
 				.withWindow(
 						Duration.ofMillis(10),
-						new GroupAllExpiredRule(Duration.ofMillis(1000), false))
+						new GroupExpiredSlidingRule(Duration.ofMillis(1000), false))
 				.buildSync();
 
 		long instant = System.currentTimeMillis() - 1000;
@@ -288,7 +288,7 @@ public class SyncIntegrationTest {
 				.threads(1)
 				.withWindow(
 						Duration.ofMillis(10),
-						new GroupAllTumblingWindowRule(Duration.ofMillis(100)))
+						new GroupExpiredTumblingWindowRule(Duration.ofMillis(100)))
 				.buildSync();
 
 		shepherd.add("lolo", 0);
@@ -317,7 +317,7 @@ public class SyncIntegrationTest {
 				.threads(1)
 				.withWindow(
 						Duration.ofMillis(10),
-						new GroupAllTumblingWindowRule(Duration.ofMillis(100)))
+						new GroupExpiredTumblingWindowRule(Duration.ofMillis(100)))
 				.buildSync();
 
 		shepherd.add("k", "lolo", 0);
@@ -352,7 +352,7 @@ public class SyncIntegrationTest {
 				.withValuesStorageProvider(InMemoryValuesStorage::new)
 				.withWindow(
 						Duration.ofMillis(20),
-						new GroupAllExpiredRule(Duration.ofMillis(500), false))
+						new GroupExpiredSlidingRule(Duration.ofMillis(500), false))
 				.buildSync();
 
 		shepherd.add(Long.valueOf(11), 0);
@@ -379,7 +379,7 @@ public class SyncIntegrationTest {
 				.withValuesStorageProvider(InMemoryValuesStorage::new)
 				.withWindow(
 						Duration.ofMillis(50),
-						new AvgRule(Duration.ofMillis(200), Duration.ofMillis(100)))
+						new AvgTumblingRule(Duration.ofMillis(200), Duration.ofMillis(100)))
 				.buildSync();
 
 		shepherd.add("k1", 10L, 0);

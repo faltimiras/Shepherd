@@ -68,10 +68,7 @@ public interface RuleWindow<V, S> {
 
 		@Override
 		public String toString() {
-			return "WindowKey{" +
-					"key=" + key +
-					", window=" + window +
-					'}';
+			return key + "-" + window;
 		}
 	}
 }
