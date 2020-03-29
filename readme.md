@@ -17,8 +17,7 @@ Shepherd shepherd = Shepherd.create()
     .basic(
         new FixedKeyExtractor(), 
         listCollector,
-        new AccumulateNRule(2),
-        )
+        new AccumulateNRule(2))
     .build();
 
 shepherd.add(1);
@@ -93,8 +92,7 @@ Shepherd shepherd = Shepherd.create()
     .basic(
         new SimpleKeyExtractor(),
         listCollector,
-        new NoDuplicatesRule(), 
-        )
+        new NoDuplicatesRule())
     .withWindow(
         Duration.ofMillis(5000), 
         new DiscardAllExpiredRule()
@@ -118,7 +116,7 @@ RuleResult<S> execute(final Metadata metadata, final V newValue, LazyValue lazyV
      .withRuleExecutor(myRuleExecutor)
      .withWindow(
          Duration.ofMillis(5000), 
-         new DiscardAllExpiredRule()
+         new DiscardAllExpiredRule())
      ).build();
  ```
 
