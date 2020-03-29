@@ -223,21 +223,6 @@ public class SyncIntegrationTest {
 		deleteDir();
 	}
 
-	private void deleteDir() {
-		deleteDir(Paths.get(System.getProperty("java.io.tmpdir"), "shepherd"));
-	}
-
-	private void deleteDir(Path path) {
-		try {
-			Files.walk(path)
-					.sorted(Comparator.reverseOrder())
-					.map(Path::toFile)
-					.forEach(File::delete);
-		} catch (Exception e) {
-			//nothing to do
-		}
-	}
-
 	@Test
 	public void accumulateContentSlidingWindowsInRedis() throws Exception {
 
@@ -255,7 +240,7 @@ public class SyncIntegrationTest {
 						new GroupExpiredSlidingRule(Duration.ofMillis(1000), false))
 				.buildSync();
 
-		long instant = System.currentTimeMillis() - 1000;
+		long instant = System.currentTimeMillis() - 1100;
 		shepherd.add("lolo", instant);
 		shepherd.add("lala", instant + 55);
 		shepherd.add("lele", instant + 888);
@@ -269,11 +254,6 @@ public class SyncIntegrationTest {
 
 		//clean redis
 		cleanRedis(FixedKeyExtractor.KEY);
-	}
-
-	private void cleanRedis(String key) {
-		Jedis jedis = new Jedis();
-		jedis.del(key);
 	}
 
 	@Test
@@ -393,5 +373,25 @@ public class SyncIntegrationTest {
 		assertEquals(2, result.size());
 		assertEquals(20.0, result.get(0).longValue(), 0);
 		assertEquals(11.0, result.get(1).longValue(), 0);
+	}
+
+	private void deleteDir() {
+		deleteDir(Paths.get(System.getProperty("java.io.tmpdir"), "shepherd"));
+	}
+
+	private void deleteDir(Path path) {
+		try {
+			Files.walk(path)
+					.sorted(Comparator.reverseOrder())
+					.map(Path::toFile)
+					.forEach(File::delete);
+		} catch (Exception e) {
+			//nothing to do
+		}
+	}
+
+	private void cleanRedis(String key) {
+		Jedis jedis = new Jedis();
+		jedis.del(key);
 	}
 }

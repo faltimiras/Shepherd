@@ -70,7 +70,7 @@ public class BasicConsumerTest {
 		verify(metrics, times(1)).rulesExecTime();
 		verify(metrics, times(1)).pendingDec();
 
-		verify(metadataStorage, times(1)).put(eq(key), any(Metadata.class)); //TODO metadata matcher
+		verify(metadataStorage, times(1)).put(eq(key), any(Metadata.class));
 		verify(valuesStorage, never()).remove(any());
 		verify(valuesStorage, never()).append(any(), any());
 		verify(valuesStorage, never()).get(any());
