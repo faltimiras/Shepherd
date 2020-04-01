@@ -86,8 +86,8 @@ RuleResult canClose(Metadata metadata, LazyValue<?, V, S> lazyValues);
 
 This rule is checked against every key every some time (configurable), to close or not groups according time.
 
-By default some window rules are in place and to abstract class ready to extend to support easily **Sliding** and **Tumbling** windows. Nice explanation about them on [kafka stream](https://kafka.apache.org/20/documentation/streams/developer-guide/dsl-api.html#windowing) documentation.
-Extend TumblingWindowBaseRule or SlidingWindowBaseRule to take advantage of their capabilities.
+By default some window rules are in place and to abstract class ready to extend to support easily **Sliding**, **Session** and **Tumbling** windows. Nice explanation about them on [kafka stream](https://kafka.apache.org/20/documentation/streams/developer-guide/dsl-api.html#windowing) documentation.
+Extend TumblingWindowBaseRule or SlidingWindowBaseRule to take advantage of their capabilities (Session windows it is the same sliding concept taking as reference the last element added instead of the first. "lastElement" flag on SlidingWindowBaseRule)
  
  ```
 Shepherd shepherd = Shepherd.create()

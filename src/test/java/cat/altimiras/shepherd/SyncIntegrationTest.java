@@ -27,6 +27,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class SyncIntegrationTest {
@@ -316,6 +317,43 @@ public class SyncIntegrationTest {
 		assertEquals("lele", result.get(1).get(0));
 		assertEquals(1, result.get(2).size());
 		assertEquals("lala", result.get(2).get(0));
+	}
+
+	@Test
+	public void accumulateInSessionWindow() throws Exception {
+
+		ListCollector listCollector = new ListCollector();
+
+		ShepherdSync shepherd = ShepherdBuilder.create()
+				.basic(
+						new FixedKeyExtractor(),
+						listCollector)
+				.threads(1)
+				.withWindow(
+						Duration.ofMillis(10),
+						new GroupExpiredSlidingRule(Duration.ofMillis(500), true))
+				.buildSync();
+
+		long instant =  System.currentTimeMillis() - 1000;
+		shepherd.add("lolo", instant);
+		shepherd.add("lala", instant + 10);
+		shepherd.add("lele", instant + 510);
+
+		shepherd.checkWindows();
+
+		List<List<String>> result = listCollector.get();
+		assertTrue(result.isEmpty());
+
+		Thread.sleep(500);
+
+		shepherd.checkWindows();
+
+		result = listCollector.get();
+		assertEquals(1, result.size());
+		assertEquals(3, result.get(0).size());
+		assertEquals("lolo", result.get(0).get(0));
+		assertEquals("lala", result.get(0).get(1));
+		assertEquals("lele", result.get(0).get(2));
 	}
 
 	@Test
