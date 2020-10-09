@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -41,17 +42,12 @@ public class ShepherdBuilder<V, S> {
 	}
 
 	public ShepherdBuilder basic(Function keyExtractor, Consumer<S> callback, List<Rule<V, S>> rules) throws Exception {
-
+		Objects.requireNonNull(callback, "callback function can not be null");
 		this.thread = 1;
 		if (rules != null && !rules.isEmpty()) {
 			this.rules = Collections.unmodifiableList(rules);
 		}
-
 		this.keyExtractor = keyExtractor;
-
-		if (callback == null) {
-			throw new NullPointerException("callback function can not be null");
-		}
 		this.callback = callback;
 		return this;
 	}
@@ -69,25 +65,19 @@ public class ShepherdBuilder<V, S> {
 	}
 
 	public ShepherdBuilder withRuleExecutor(RuleExecutor ruleExecutor) {
-		if (ruleExecutor == null) {
-			throw new NullPointerException("Rules executor can not be null. Hint: if you don't need it, just leave it empty");
-		}
+		Objects.requireNonNull(ruleExecutor, "Rules executor can not be null. Hint: if you don't need it, just leave it empty");
 		this.ruleExecutor = ruleExecutor;
 		return this;
 	}
 
 	public ShepherdBuilder withMetadataStorageProvider(Supplier<MetadataStorage> metadataStorageProvider) {
-		if (metadataStorageProvider == null) {
-			throw new NullPointerException("MetadataStorageProvider can not be null. Hint: if you don't need it, just leave it empty");
-		}
+		Objects.requireNonNull(metadataStorageProvider, "MetadataStorageProvider can not be null. Hint: if you don't need it, just leave it empty");
 		this.metadataStorageProvider = metadataStorageProvider;
 		return this;
 	}
 
 	public ShepherdBuilder withValuesStorageProvider(Supplier<ValuesStorage> valuesStorageProvider) {
-		if (valuesStorageProvider == null) {
-			throw new NullPointerException("ValuesStorageProvider can not be null. Hint: if you don't need it, just leave it empty");
-		}
+		Objects.requireNonNull(valuesStorageProvider, "ValuesStorageProvider can not be null. Hint: if you don't need it, just leave it empty");
 		this.valuesStorageProvider = valuesStorageProvider;
 		return this;
 	}
@@ -113,7 +103,8 @@ public class ShepherdBuilder<V, S> {
 	}
 
 	public ShepherdASync build() {
-		return new ShepherdASync(metadataStorageProvider, valuesStorageProvider, thread, keyExtractor, rules, ruleExecutor, callback, null, new Metrics(metrics), clock);
+		Window window = windowBuilder == null ? null : windowBuilder.buildWindow();
+		return build(window);
 	}
 
 	private ShepherdASync build(Window window) {
@@ -121,20 +112,14 @@ public class ShepherdBuilder<V, S> {
 	}
 
 	public WindowBuilder withWindow(Duration precision, RuleWindow rule) {
-		if (rule == null) {
-			throw new NullPointerException("Window rule can not be null");
-		}
-		if (precision == null) {
-			throw new NullPointerException("Precision can not be null");
-		}
+		Objects.requireNonNull(rule, "Window rule can not be null");
+		Objects.requireNonNull(precision, "Precision can not be null");
 		this.windowBuilder = new WindowBuilder(this, precision, rule);
 		return this.windowBuilder;
 	}
 
 	public WindowBuilder withWindow(RuleWindow rule) {
-		if (rule == null) {
-			throw new NullPointerException("Window rule can not be null");
-		}
+		Objects.requireNonNull(rule, "Window rule can not be null");
 		this.windowBuilder = new WindowBuilder(this, Duration.ofSeconds(10), rule);
 		return this.windowBuilder;
 	}
@@ -159,30 +144,21 @@ public class ShepherdBuilder<V, S> {
 		private Supplier<Scheduler> schedulerProvider;
 
 		public WindowBuilder(ShepherdBuilder shepherdBuilder, Duration precision, RuleWindow ruleWindow) {
+			Objects.requireNonNull(ruleWindow, "Rule applied to close the Window can not be null. Hint: if you don't need them, don't use the Window");
+			Objects.requireNonNull(precision, "Precision can not be null");
 			this.shepherdBuilder = shepherdBuilder;
-
-			if (ruleWindow == null) {
-				throw new NullPointerException("Rule applied to close the Window can not be null. Hint: if you don't need them, don't use the Window");
-			}
-
 			this.rule = ruleWindow;
-
-			if (precision == null) {
-				throw new NullPointerException("Precision can not be null");
-			}
 			this.precision = precision;
 		}
 
 		public WindowBuilder setSchedulerProvider(Supplier<Scheduler> schedulerProvider) {
-			if (schedulerProvider == null) {
-				throw new NullPointerException("SchedulerProvider can not be null. Hint: if you don't need it, just leave it empty");
-			}
+			Objects.requireNonNull(schedulerProvider, "SchedulerProvider can not be null. Hint: if you don't need it, just leave it empty");
 			this.schedulerProvider = schedulerProvider;
 			return this;
 		}
 
 		private Window buildWindow() {
-			return new Window(rule, precision, schedulerProvider);
+			return rule == null ? null : new Window(rule, precision, schedulerProvider);
 		}
 
 

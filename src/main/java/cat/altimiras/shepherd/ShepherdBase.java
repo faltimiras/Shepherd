@@ -43,4 +43,8 @@ abstract class ShepherdBase<K, V, S> implements Shepherd<K, V> {
 			log.info("Ignoring force timeouts. As Window is not configured");
 		}
 	}
+
+	Window getWindow() {
+		return window;
+	}
 }

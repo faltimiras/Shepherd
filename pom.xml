@@ -6,7 +6,7 @@
 
 	<groupId>cat.altimiras</groupId>
 	<artifactId>shepherd</artifactId>
-	<version>2.0.0</version>
+	<version>2.0.1</version>
 
 	<description>Group elements according streaming rules executed asynchronously or on sliding or tumbling time windows</description>
 	<url>https://github.com/faltimiras/Shepherd/</url>
