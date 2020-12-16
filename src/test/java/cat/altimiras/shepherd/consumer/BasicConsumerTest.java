@@ -1,5 +1,13 @@
 package cat.altimiras.shepherd.consumer;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import cat.altimiras.shepherd.InputValue;
 import cat.altimiras.shepherd.LazyValues;
 import cat.altimiras.shepherd.Metadata;
@@ -9,43 +17,44 @@ import cat.altimiras.shepherd.RuleResult;
 import cat.altimiras.shepherd.rules.Rule;
 import cat.altimiras.shepherd.storage.MetadataStorage;
 import cat.altimiras.shepherd.storage.ValuesStorage;
-import org.junit.Before;
-import org.junit.Test;
-
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Consumer;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class BasicConsumerTest {
 
-	private String key = "key";
-	private Metadata metadata = new Metadata(key, 123L);
-	private Object object = new Object();
-	private List get = Collections.singletonList(new Object());
-	private InputValue inputValue = new InputValue(object, key, 123L);
+	private final String key = "key";
+
+	private final Metadata metadata = new Metadata(key, 123L, Clock.systemUTC());
+
+	private final Object object = new Object();
+
+	private final List get = Collections.singletonList(new Object());
+
+	private final InputValue inputValue = new InputValue(object, key, 123L);
 
 	private Consumer<List> callback;
+
 	private RuleExecutor ruleExecutor;
+
 	private Metrics metrics;
+
 	private MetadataStorage metadataStorage;
+
 	private ValuesStorage valuesStorage;
+
 	private List<Rule> rules;
 
 	private BasicConsumer basicConsumer;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		callback = mock(Consumer.class);
 		ruleExecutor = mock(RuleExecutor.class);
@@ -56,7 +65,7 @@ public class BasicConsumerTest {
 		Rule rule = mock(Rule.class);
 		rules = Collections.singletonList(rule);
 
-		basicConsumer = new BasicConsumer(metadataStorage, valuesStorage, rules, blockingQueue, ruleExecutor, callback, metrics);
+		basicConsumer = new BasicConsumer(metadataStorage, valuesStorage, rules, blockingQueue, ruleExecutor, callback, metrics, Clock.systemUTC());
 	}
 
 	@Test

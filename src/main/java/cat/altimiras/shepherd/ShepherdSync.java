@@ -5,14 +5,13 @@ import cat.altimiras.shepherd.consumer.WindowedConsumer;
 import cat.altimiras.shepherd.rules.Rule;
 import cat.altimiras.shepherd.storage.MetadataStorage;
 import cat.altimiras.shepherd.storage.ValuesStorage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.Clock;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class ShepherdSync<K, V, S> extends ShepherdBase<K, V, S> {
@@ -26,9 +25,9 @@ public class ShepherdSync<K, V, S> extends ShepherdBase<K, V, S> {
 		super(keyExtractor, callback, ruleExecutor, 1, window, metrics, clock);
 
 		if (window != null) {
-			this.consumer = new WindowedConsumer(metadataStorageProvider.get(), valuesStorageProvider.get(), rules, this.ruleExecutor, null, null, window.getRule(), this.callback, metrics);
+			this.consumer = new WindowedConsumer(metadataStorageProvider.get(), valuesStorageProvider.get(), rules, this.ruleExecutor, null, null, window.getRule(), this.callback, metrics, clock);
 		} else {
-			this.consumer = new BasicConsumer(metadataStorageProvider.get(), valuesStorageProvider.get(), rules, null, this.ruleExecutor, this.callback, metrics);
+			this.consumer = new BasicConsumer(metadataStorageProvider.get(), valuesStorageProvider.get(), rules, null, this.ruleExecutor, this.callback, metrics, clock);
 		}
 
 		this.consumers.add(consumer);

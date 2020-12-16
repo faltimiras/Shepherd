@@ -3,9 +3,13 @@ package cat.altimiras.shepherd;
 public class RuleResult<S> {
 
 	protected S group; //group output
+
 	protected S toKeep; //object to keep in the values storage
+
 	private boolean canClose;
+
 	private int append; //-1: append first, 0: not append, 1 append at the end
+
 	private int discard; //-1: discard before, 0 : not discard, 1 discard at the end
 
 	RuleResult() {
@@ -16,14 +20,6 @@ public class RuleResult<S> {
 		RuleResult<S> ruleResult = RuleResultPool.borrow();
 		ruleResult.build(true, 0, 0, (S) group, (S) toKeep);
 		return ruleResult;
-	}
-
-	private void build(boolean canGroup, int append, int discard, S group, S toKeep) {
-		this.canClose = canGroup;
-		this.group = group;
-		this.toKeep = toKeep;
-		this.append = append;
-		this.discard = discard;
 	}
 
 	public static <S> RuleResult<S> groupAndDiscard(S group) {
@@ -95,6 +91,14 @@ public class RuleResult<S> {
 		return ruleResult;
 	}
 
+	private void build(boolean canGroup, int append, int discard, S group, S toKeep) {
+		this.canClose = canGroup;
+		this.group = group;
+		this.toKeep = toKeep;
+		this.append = append;
+		this.discard = discard;
+	}
+
 	void reset() {
 		this.canClose = false;
 		this.group = null;
@@ -141,5 +145,16 @@ public class RuleResult<S> {
 
 	public void setDiscard(int discard) {
 		this.discard = discard;
+	}
+
+	@Override
+	public String toString() {
+		return "RuleResult{" +
+				"group=" + group +
+				", toKeep=" + toKeep +
+				", canClose=" + canClose +
+				", append=" + append +
+				", discard=" + discard +
+				'}';
 	}
 }

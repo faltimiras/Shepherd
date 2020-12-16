@@ -2,15 +2,15 @@ package cat.altimiras.shepherd.storage.redis;
 
 import cat.altimiras.shepherd.storage.ValuesStorage;
 import cat.altimiras.shepherd.storage.serdes.BasicSerializer;
-import redis.clients.jedis.Jedis;
-
 import java.util.List;
 import java.util.function.Function;
+import redis.clients.jedis.Jedis;
 
 public class RedisListValuesStorage implements ValuesStorage<Object, Object, List<String>> {
 
 	//Serializers
 	final private Function<Object, String> keySerializer;
+
 	final private Function<Object, String> valueSerializer;
 
 	final private Jedis jedis;

@@ -6,9 +6,6 @@ import cat.altimiras.shepherd.rules.Rule;
 import cat.altimiras.shepherd.scheduler.Scheduler;
 import cat.altimiras.shepherd.storage.MetadataStorage;
 import cat.altimiras.shepherd.storage.ValuesStorage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.Clock;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -17,6 +14,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class ShepherdASync<K, V, S> extends ShepherdBase<K, V, S> {
@@ -24,7 +23,9 @@ public class ShepherdASync<K, V, S> extends ShepherdBase<K, V, S> {
 	protected static final Logger log = LoggerFactory.getLogger(ShepherdASync.class);
 
 	private final LinkedBlockingQueue<InputValue<K, V>>[] queues;
+
 	private final ExecutorService pool;
+
 	private final int threads;
 
 	ShepherdASync(Supplier<MetadataStorage> metadataStorageProvider, Supplier<ValuesStorage> valuesStorageProvider, int thread, Function keyExtractor, List<Rule<V, S>> rules, RuleExecutor<V, S> ruleExecutor, Consumer<S> callback, Window window, Metrics metrics, Clock clock) {
@@ -64,7 +65,8 @@ public class ShepherdASync<K, V, S> extends ShepherdBase<K, V, S> {
 					(Scheduler) window.getSchedulerProvider().get(),
 					window.getRule(),
 					this.callback,
-					metrics);
+					metrics,
+					clock);
 		} else {
 			return new BasicConsumer(
 					metadataStorageProvider.get(),
@@ -73,7 +75,8 @@ public class ShepherdASync<K, V, S> extends ShepherdBase<K, V, S> {
 					this.queues[index],
 					this.ruleExecutor,
 					this.callback,
-					metrics);
+					metrics,
+					clock);
 		}
 	}
 

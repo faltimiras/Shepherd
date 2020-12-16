@@ -1,14 +1,13 @@
 package cat.altimiras.shepherd;
 
 import cat.altimiras.shepherd.consumer.WindowedConsumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 abstract class ShepherdBase<K, V, S> implements Shepherd<K, V> {
@@ -16,11 +15,17 @@ abstract class ShepherdBase<K, V, S> implements Shepherd<K, V> {
 	protected static final Logger log = LoggerFactory.getLogger(ShepherdBase.class);
 
 	protected final Metrics metrics;
+
 	protected final Function<Object, K> keyExtractor;
+
 	protected final Consumer<S> callback;
+
 	protected final RuleExecutor<V, S> ruleExecutor;
+
 	protected final Window window;
+
 	protected final boolean isWindowed;
+
 	protected final Clock clock;
 
 	protected final List<QueueConsumer> consumers;
@@ -40,7 +45,7 @@ abstract class ShepherdBase<K, V, S> implements Shepherd<K, V> {
 		if (isWindowed) {
 			consumers.forEach((c -> ((WindowedConsumer) c).checkWindows()));
 		} else {
-			log.info("Ignoring force timeouts. As Window is not configured");
+			log.warn("Ignoring force timeouts. As Window is not configured");
 		}
 	}
 

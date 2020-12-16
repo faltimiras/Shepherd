@@ -3,21 +3,28 @@ package cat.altimiras.shepherd;
 import cat.altimiras.shepherd.rules.RuleWindow;
 import cat.altimiras.shepherd.scheduler.BasicScheduler;
 import cat.altimiras.shepherd.scheduler.Scheduler;
-
 import java.time.Clock;
 import java.time.Duration;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Window<T> {
-	private RuleWindow ruleWindow;
-	private Duration precision;
-	private Supplier<Scheduler> schedulerProvider;
 
-	public Window(RuleWindow ruleWindow, Duration precision, Supplier<Scheduler> schedulerProvider) {
+	private static final Logger log = LoggerFactory.getLogger(Window.class);
+
+	private final RuleWindow ruleWindow;
+
+	private final Duration precision;
+
+	private final Supplier<Scheduler> schedulerProvider;
+
+	public Window(RuleWindow ruleWindow, Duration precision, Supplier<Scheduler> schedulerProvider, Clock clock) {
 		this.ruleWindow = ruleWindow;
 		this.precision = precision;
 		if (schedulerProvider == null) {
-			this.schedulerProvider = () -> new BasicScheduler(Clock.systemUTC(), precision);
+			log.info("Not scheduler provided. BasicScheduler configured");
+			this.schedulerProvider = () -> new BasicScheduler(clock, precision);
 		} else {
 			this.schedulerProvider = schedulerProvider;
 		}

@@ -1,6 +1,7 @@
 package cat.altimiras.shepherd.storage.serdes;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 public class BasicBinarySerializer implements Function<Object, byte[]> {
@@ -8,7 +9,7 @@ public class BasicBinarySerializer implements Function<Object, byte[]> {
 	final private Charset charset;
 
 	public BasicBinarySerializer() {
-		this.charset = Charset.forName("UTF-8");
+		this.charset = StandardCharsets.UTF_8;
 	}
 
 	public BasicBinarySerializer(Charset charset) {

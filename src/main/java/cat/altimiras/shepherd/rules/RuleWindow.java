@@ -3,7 +3,7 @@ package cat.altimiras.shepherd.rules;
 import cat.altimiras.shepherd.LazyValues;
 import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.RuleResult;
-
+import java.time.Clock;
 import java.time.Duration;
 import java.util.Objects;
 
@@ -36,12 +36,16 @@ public interface RuleWindow<V, S> {
 	WindowKey adaptKey(Object key, long eventTs);
 
 	class WindowKey {
-		private Object key;
-		private long window;
+		private final long creationTime;
 
-		public WindowKey(Object key, long window) {
+		private final Object key;
+
+		private final long window;
+
+		public WindowKey(Object key, long window, Clock clock) {
 			this.key = key;
 			this.window = window;
+			this.creationTime = clock.millis();
 		}
 
 		public Object getKey() {
@@ -52,6 +56,10 @@ public interface RuleWindow<V, S> {
 			return window;
 		}
 
+		public long getCreationTime() {
+			return creationTime;
+		}
+
 		@Override
 		public int hashCode() {
 			return Objects.hash(key, window);
@@ -59,8 +67,12 @@ public interface RuleWindow<V, S> {
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (o == null || getClass() != o.getClass()) return false;
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
 			WindowKey windowKey = (WindowKey) o;
 			return window == windowKey.window &&
 					Objects.equals(key, windowKey.key);

@@ -1,17 +1,21 @@
 package cat.altimiras.shepherd;
 
+import static com.codahale.metrics.MetricRegistry.name;
+
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 
-import static com.codahale.metrics.MetricRegistry.name;
-
 public class Metrics {
 
 	private final MetricRegistry metricRegistry;
+
 	private final Counter pendingElementToProcess;
+
 	private final Timer execTimeRules;
+
 	private final Timer execTimeWindow;
+
 	private final AutoCloseable emptyContext = new DevNullAutoClosable();
 
 	public Metrics(MetricRegistry metricRegistry) {

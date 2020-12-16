@@ -6,7 +6,6 @@ import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.RuleExecutor;
 import cat.altimiras.shepherd.RuleResult;
 import cat.altimiras.shepherd.rules.Rule;
-
 import java.util.List;
 
 /**

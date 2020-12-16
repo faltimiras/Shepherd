@@ -12,20 +12,26 @@ import cat.altimiras.shepherd.rules.RuleWindow;
 import cat.altimiras.shepherd.scheduler.Scheduler;
 import cat.altimiras.shepherd.storage.MetadataStorage;
 import cat.altimiras.shepherd.storage.ValuesStorage;
-
+import java.time.Clock;
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WindowedConsumer<K, V, S> extends QueueConsumer<K, V, S> {
 
+	private static final Logger log = LoggerFactory.getLogger(WindowedConsumer.class);
+
 	private final Scheduler scheduler;
+
 	private final RuleWindow<V, S> rulesWindow;
 
-	public WindowedConsumer(MetadataStorage<K> metadataStorage, ValuesStorage<K, V, S> valuesStorage, List<Rule<V, S>> rules, RuleExecutor<V, S> ruleExecutor, BlockingQueue<InputValue<K, V>> queue, Scheduler scheduler, RuleWindow ruleWindow, Consumer<S> callback, Metrics metrics) {
-		super(metadataStorage, valuesStorage, rules, queue, ruleExecutor, callback, metrics);
+	public WindowedConsumer(MetadataStorage<K> metadataStorage, ValuesStorage<K, V, S> valuesStorage, List<Rule<V, S>> rules, RuleExecutor<V, S> ruleExecutor, BlockingQueue<InputValue<K, V>> queue, Scheduler scheduler, RuleWindow ruleWindow, Consumer<S> callback, Metrics metrics, Clock clock) {
+		super(metadataStorage, valuesStorage, rules, queue, ruleExecutor, callback, metrics, clock);
 		this.scheduler = scheduler;
 		this.rulesWindow = ruleWindow;
 	}
@@ -64,17 +70,19 @@ public class WindowedConsumer<K, V, S> extends QueueConsumer<K, V, S> {
 	}
 
 	public void checkWindows() {
-
-		log.debug("Checking opened windows");
-
+		Instant start = null;
+		if (log.isDebugEnabled()) {
+			start = clock.instant();
+			log.debug("Checking opened windows at {}", start);
+		}
 		try (AutoCloseable ac = metrics.ruleWindowExecTime()) {
 			Iterator<Metadata<K>> it = metadataStorage.values();
 
 			while (it.hasNext()) {
 				Metadata<K> metadata = it.next();
-
+				log.debug("Checking window rule for key {}", metadata.getKey());
 				RuleResult<S> ruleResult = rulesWindow.canClose(metadata, new LazyValues(valuesStorage, metadata.getKey()));
-
+				log.debug("Checked window rule for key {} with result {}", metadata.getKey(), ruleResult);
 				boolean needsToRemoveMetadataForThisKey = postProcess(metadata.getKey(), null, metadata, ruleResult);
 				if (needsToRemoveMetadataForThisKey) {
 					it.remove();
@@ -83,6 +91,10 @@ public class WindowedConsumer<K, V, S> extends QueueConsumer<K, V, S> {
 
 			if (scheduler != null) {
 				scheduler.justExecuted();
+			}
+
+			if (log.isDebugEnabled()) {
+				log.debug("Finished checking window rules. Process it took: {}ms", start.minusMillis(clock.instant().toEpochMilli()).toEpochMilli());
 			}
 		} catch (Exception e) {
 			log.error("Error closing windows", e);

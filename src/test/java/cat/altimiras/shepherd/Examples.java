@@ -12,13 +12,13 @@ import cat.altimiras.shepherd.rules.window.GroupExpiredSlidingRule;
 import cat.altimiras.shepherd.rules.window.GroupExpiredTumblingWindowRule;
 import cat.altimiras.shepherd.storage.file.FileValuesStorage;
 import cat.altimiras.shepherd.storage.memory.InMemoryValuesStorage;
-import org.junit.Ignore;
-import org.junit.Test;
-
+import java.time.Clock;
 import java.time.Duration;
 import java.util.Random;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-@Ignore
+@Disabled
 public class Examples {
 
 	/**
@@ -41,7 +41,7 @@ public class Examples {
 				.withValuesStorageProvider(FileValuesStorage::new)
 				.withWindow(
 						Duration.ofMillis(1000),
-						new GroupExpiredTumblingWindowRule(Duration.ofMinutes(2), Duration.ofMillis(0)))
+						new GroupExpiredTumblingWindowRule(Duration.ofMinutes(2), Duration.ofMillis(0), Clock.systemUTC()))
 				.build();
 
 		//just do some noise to test it
@@ -50,7 +50,6 @@ public class Examples {
 			shepherd.add(System.currentTimeMillis() + "\n");
 			Thread.sleep(10000);
 		}
-
 	}
 
 	/**
@@ -65,7 +64,7 @@ public class Examples {
 						new NoDuplicatesRule())
 				.withWindow(
 						Duration.ofMillis(1000),
-						new DiscardExpiredSlidingRule(Duration.ofSeconds(30)))
+						new DiscardExpiredSlidingRule(Duration.ofSeconds(30), Clock.systemUTC()))
 				.build();
 
 		//just do some noise to test it
@@ -121,7 +120,7 @@ public class Examples {
 				.threads(2)
 				.withWindow(
 						Duration.ofSeconds(1),
-						new GroupExpiredSlidingRule(Duration.ofSeconds(15), false)
+						new GroupExpiredSlidingRule(Duration.ofSeconds(15), false, Clock.systemUTC())
 				)
 				.build();
 
@@ -155,7 +154,7 @@ public class Examples {
 				.withValuesStorageProvider(InMemoryValuesStorage::new) //As we are accumulating a calculated value and not a group of them, a storage to store objects instead of lists is needed.
 				.withWindow(
 						Duration.ofSeconds(1),
-						new AvgTumblingRule(Duration.ofSeconds(15))
+						new AvgTumblingRule(Duration.ofSeconds(15), Clock.systemUTC())
 				)
 				.build();
 

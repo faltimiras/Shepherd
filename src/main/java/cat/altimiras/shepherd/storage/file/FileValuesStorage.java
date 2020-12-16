@@ -2,9 +2,6 @@ package cat.altimiras.shepherd.storage.file;
 
 import cat.altimiras.shepherd.storage.ValuesStorage;
 import cat.altimiras.shepherd.storage.serdes.BasicBinarySerializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,6 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Store values in the file system.
@@ -27,10 +26,12 @@ public class FileValuesStorage<K, V> implements ValuesStorage<K, V, Path> {
 	protected static Logger log = LoggerFactory.getLogger(FileValuesStorage.class);
 
 	final private Function<Object, byte[]> serializer;
+
 	final private Path storageBaseDir;
+
 	final private byte[] separator;
 
-	private Map<K, Path> storage = new HashMap<>();
+	private final Map<K, Path> storage = new HashMap<>();
 
 	public FileValuesStorage(Path storageBaseDir, Function serializer, byte[] separator) {
 		this.storageBaseDir = storageBaseDir;
@@ -46,6 +47,7 @@ public class FileValuesStorage<K, V> implements ValuesStorage<K, V, Path> {
 
 	public FileValuesStorage() {
 		this.storageBaseDir = Paths.get(System.getProperty("java.io.tmpdir"), "shepherd", UUID.randomUUID().toString());
+		log.info("File storage created without storage directory. It will use: {}", this.storageBaseDir);
 		this.serializer = new BasicBinarySerializer();
 		this.separator = new byte[]{};
 		try {

@@ -1,14 +1,13 @@
 package cat.altimiras.shepherd;
 
-import cat.altimiras.shepherd.callback.ListCollector;
-import org.junit.Test;
-
-import java.util.function.Function;
-
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import cat.altimiras.shepherd.callback.ListCollector;
+import java.util.function.Function;
+import org.junit.jupiter.api.Test;
 
 public class ShepherdSyncTest {
 

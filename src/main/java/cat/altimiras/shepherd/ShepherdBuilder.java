@@ -9,7 +9,6 @@ import cat.altimiras.shepherd.storage.ValuesStorage;
 import cat.altimiras.shepherd.storage.memory.InMemoryListValuesStorage;
 import cat.altimiras.shepherd.storage.memory.InMemoryMetadataStorage;
 import com.codahale.metrics.MetricRegistry;
-
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Arrays;
@@ -24,17 +23,30 @@ import java.util.function.Supplier;
 public class ShepherdBuilder<V, S> {
 
 	private final static Clock clock = Clock.systemUTC();
+
 	private int thread;
+
 	private Function keyExtractor;
+
 	private List<Rule<V, S>> rules;
+
 	private Consumer<S> callback;
+
 	private WindowBuilder<V> windowBuilder = null;
+
 	private MetricRegistry metrics = null;
+
 	private RuleExecutor<V, S> ruleExecutor = new CloseOrLastExecutor();
+
 	private Supplier<MetadataStorage> metadataStorageProvider = InMemoryMetadataStorage::new;
+
 	private Supplier<ValuesStorage> valuesStorageProvider = InMemoryListValuesStorage::new;
 
 	private ShepherdBuilder() {
+	}
+
+	public static ShepherdBuilder create() {
+		return new ShepherdBuilder();
 	}
 
 	public ShepherdBuilder basic(Consumer<S> callback, List<Rule<V, S>> rules) throws Exception {
@@ -132,15 +144,14 @@ public class ShepherdBuilder<V, S> {
 		return this;
 	}
 
-	public static ShepherdBuilder create() {
-		return new ShepherdBuilder();
-	}
-
 	public static class WindowBuilder<T> {
 
-		private ShepherdBuilder shepherdBuilder;
-		private RuleWindow rule;
-		private Duration precision;
+		private final ShepherdBuilder shepherdBuilder;
+
+		private final RuleWindow rule;
+
+		private final Duration precision;
+
 		private Supplier<Scheduler> schedulerProvider;
 
 		public WindowBuilder(ShepherdBuilder shepherdBuilder, Duration precision, RuleWindow ruleWindow) {
@@ -158,16 +169,16 @@ public class ShepherdBuilder<V, S> {
 		}
 
 		private Window buildWindow() {
-			return rule == null ? null : new Window(rule, precision, schedulerProvider);
+			return rule == null ? null : new Window(rule, precision, schedulerProvider, clock);
 		}
 
 
 		public ShepherdASync build() {
-			return this.shepherdBuilder.build(new Window(rule, precision, schedulerProvider));
+			return this.shepherdBuilder.build(new Window(rule, precision, schedulerProvider, clock));
 		}
 
 		public ShepherdSync buildSync() {
-			return this.shepherdBuilder.buildSync(new Window(rule, precision, schedulerProvider));
+			return this.shepherdBuilder.buildSync(new Window(rule, precision, schedulerProvider, clock));
 		}
 	}
 }

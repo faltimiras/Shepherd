@@ -18,7 +18,6 @@ public class RuleResultPool<V> {
 		return r.get();
 	}
 
-
 	public static void release(RuleResult ruleResult) {
 		ruleResult.reset();
 		pool.offer(new SoftReference<>(ruleResult));

@@ -4,10 +4,18 @@ import java.util.function.Function;
 
 public class FixedKeyExtractor implements Function<Object, String> {
 
-	final public static String KEY = "k";
+	private final String key;
+
+	public FixedKeyExtractor() {
+		this.key = "k";
+	}
+
+	public FixedKeyExtractor(String key) {
+		this.key = key;
+	}
 
 	@Override
 	public String apply(Object o) {
-		return KEY;
+		return this.key;
 	}
 }

@@ -45,8 +45,8 @@ SimpleKeyExtractor and FixedKeyExtractor are already coded. Useful for simple ca
 
 **Rule**
 
-Decides when an new element must be accumulated or to a group or it has to be "released". 
-Rules are checked when a new element is added to shepherd instance.
+Decides when a new element must be accumulated or to a group or it has to be "released". 
+Rules are checked when a new element is added to shepherd.
 
 ```
 public interface Rule<V, S> {
@@ -58,7 +58,7 @@ public interface Rule<V, S> {
 - **v** is the new element that has been added.
 - **lazyValues** give access to the rule to get already grouped elements.
 
-- **RuleResult** tells to shepherd what has to be done with the new element added.
+- **RuleResult** tells Shepherd what has to be done with the new element added.
 3 actions can be defined: **Append** (or not) the value just added, **Discard** stored until this moment, **Close** the group and "released".
 RuleResult has a bunch of cool methods to build RuleResults easily.
 
@@ -66,7 +66,7 @@ There are 6 already coded simple rules to cover simple cases: [Streaming rules](
 
 **Callback**
 
-It is the way to get brand new groups created.
+It is the way to get a brand new group created.
 
 Callback it is just a Consumer Java functional interface.
 
@@ -86,7 +86,7 @@ RuleResult canClose(Metadata metadata, LazyValue<?, V, S> lazyValues);
 
 This rule is checked against every key every some time (configurable), to close or not groups according time.
 
-By default some window rules are in place and to abstract class ready to extend to support easily **Sliding**, **Session** and **Tumbling** windows. Nice explanation about them on [kafka stream](https://kafka.apache.org/20/documentation/streams/developer-guide/dsl-api.html#windowing) documentation.
+By default, some window rules are in place and to abstract class ready to extend to support easily **Sliding**, **Session** and **Tumbling** windows. Nice explanation about them on [kafka stream](https://kafka.apache.org/20/documentation/streams/developer-guide/dsl-api.html#windowing) documentation.
 Extend TumblingWindowBaseRule or SlidingWindowBaseRule to take advantage of their capabilities (Session windows it is the same sliding concept taking as reference the last element added instead of the first. "lastElement" flag on SlidingWindowBaseRule)
  
  ```

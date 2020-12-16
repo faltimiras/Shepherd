@@ -1,17 +1,9 @@
 package cat.altimiras.shepherd.executor;
 
-import cat.altimiras.shepherd.LazyValues;
-import cat.altimiras.shepherd.Metadata;
-import cat.altimiras.shepherd.RuleResult;
-import cat.altimiras.shepherd.rules.Rule;
-import org.junit.Test;
-
-import java.util.Arrays;
-
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertNull;
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -19,12 +11,23 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import cat.altimiras.shepherd.LazyValues;
+import cat.altimiras.shepherd.Metadata;
+import cat.altimiras.shepherd.RuleResult;
+import cat.altimiras.shepherd.rules.Rule;
+import java.time.Clock;
+import java.util.Arrays;
+import org.junit.jupiter.api.Test;
+
 public class CloseOrLastExecutorTest {
 
 	private final String key = "key";
+
 	private final Object object = new Object();
+
 	private final LazyValues lazyValues = new LazyValues(null, key);
-	private Metadata metadata = new Metadata(key, 0l);
+
+	private final Metadata metadata = new Metadata(key, 0l, Clock.systemUTC());
 
 	@Test
 	public void firstCanGroup() throws Exception {

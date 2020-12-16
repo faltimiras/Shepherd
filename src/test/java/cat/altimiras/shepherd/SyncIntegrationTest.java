@@ -1,5 +1,9 @@
 package cat.altimiras.shepherd;
 
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import cat.altimiras.shepherd.callback.FileCollector;
 import cat.altimiras.shepherd.callback.ListCollector;
 import cat.altimiras.shepherd.rules.keyextractors.FixedKeyExtractor;
@@ -15,19 +19,17 @@ import cat.altimiras.shepherd.rules.window.GroupExpiredTumblingWindowRule;
 import cat.altimiras.shepherd.storage.file.FileValuesStorage;
 import cat.altimiras.shepherd.storage.memory.InMemoryValuesStorage;
 import cat.altimiras.shepherd.storage.redis.RedisValuesStorage;
-import org.junit.Test;
-import redis.clients.jedis.Jedis;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Clock;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import java.util.Random;
+import org.junit.jupiter.api.Test;
+import redis.clients.jedis.Jedis;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class SyncIntegrationTest {
@@ -142,18 +144,19 @@ public class SyncIntegrationTest {
 				.threads(1)
 				.withWindow(
 						Duration.ofMillis(10),
-						new DiscardExpiredSlidingRule(Duration.ofMillis(50), false))
+						new DiscardExpiredSlidingRule(Duration.ofMillis(50), false, Clock.systemUTC()))
 				.buildSync();
 
 		//2 repeated element in the same window
 		long instant = System.currentTimeMillis();
 		shepherd.add(1, instant - 1000L);
 		shepherd.add(1, instant - 999L);
-
+		Thread.sleep(51);
 		shepherd.checkWindows(); //trigger window checker execution
 
-		shepherd.add(1, instant);
+		shepherd.add(1, instant - 100L);
 
+		Thread.sleep(51);
 		shepherd.checkWindows(); //trigger window checker execution
 
 		assertEquals(2, listCollector.size());
@@ -174,7 +177,7 @@ public class SyncIntegrationTest {
 				.threads(1)
 				.withWindow(
 						Duration.ofMillis(10),
-						new GroupExpiredSlidingRule(Duration.ofMillis(100), false))
+						new GroupExpiredSlidingRule(Duration.ofMillis(100), false, Clock.systemUTC()))
 				.buildSync();
 
 		long instant = System.currentTimeMillis() - 1000;
@@ -182,6 +185,7 @@ public class SyncIntegrationTest {
 		shepherd.add("lolo", instant);
 		shepherd.add("lala", instant);
 
+		Thread.sleep(101);
 		shepherd.checkWindows();
 
 		assertEquals(3, listCollector.size());
@@ -205,7 +209,7 @@ public class SyncIntegrationTest {
 				.withValuesStorageProvider(FileValuesStorage::new)
 				.withWindow(
 						Duration.ofMillis(10),
-						new GroupExpiredSlidingRule(Duration.ofMillis(1000), false))
+						new GroupExpiredSlidingRule(Duration.ofMillis(1000), false, Clock.systemUTC()))
 				.buildSync();
 
 		long instant = System.currentTimeMillis() - 1100;
@@ -213,6 +217,7 @@ public class SyncIntegrationTest {
 		shepherd.add("lala", instant + 1);
 		shepherd.add("lele", instant + 55);
 
+		Thread.sleep(1001);
 		shepherd.checkWindows();
 
 		List<Path> result = fileCollector.get();
@@ -229,16 +234,18 @@ public class SyncIntegrationTest {
 
 		ListCollector binaryCollector = new ListCollector();
 
+		String keyUsed = "shepherd-redis-key-" + new Random().nextLong();
+
 		ShepherdSync shepherd = ShepherdBuilder.create()
 				.basic(
-						new FixedKeyExtractor(),
+						new FixedKeyExtractor(keyUsed),
 						binaryCollector,
 						new AccumulateRule())
 				.threads(1)
 				.withValuesStorageProvider(RedisValuesStorage::new)
 				.withWindow(
 						Duration.ofMillis(10),
-						new GroupExpiredSlidingRule(Duration.ofMillis(1000), false))
+						new GroupExpiredSlidingRule(Duration.ofMillis(1000), false, Clock.systemUTC()))
 				.buildSync();
 
 		long instant = System.currentTimeMillis() - 1100;
@@ -246,6 +253,7 @@ public class SyncIntegrationTest {
 		shepherd.add("lala", instant + 55);
 		shepherd.add("lele", instant + 888);
 
+		Thread.sleep(1001);
 		shepherd.checkWindows();
 
 		List<String> result = binaryCollector.get();
@@ -254,7 +262,7 @@ public class SyncIntegrationTest {
 		assertEquals("lololalalele", result.get(0));
 
 		//clean redis
-		cleanRedis(FixedKeyExtractor.KEY);
+		cleanRedis(keyUsed);
 	}
 
 	@Test
@@ -269,13 +277,14 @@ public class SyncIntegrationTest {
 				.threads(1)
 				.withWindow(
 						Duration.ofMillis(10),
-						new GroupExpiredTumblingWindowRule(Duration.ofMillis(100)))
+						new GroupExpiredTumblingWindowRule(Duration.ofMillis(100), Clock.systemUTC()))
 				.buildSync();
 
 		shepherd.add("lolo", 0);
 		shepherd.add("lala", 10);
 		shepherd.add("lele", 110);
 
+		Thread.sleep(101);
 		shepherd.checkWindows();
 
 		List<List<String>> result = listCollector.get();
@@ -298,7 +307,7 @@ public class SyncIntegrationTest {
 				.threads(1)
 				.withWindow(
 						Duration.ofMillis(10),
-						new GroupExpiredTumblingWindowRule(Duration.ofMillis(100)))
+						new GroupExpiredTumblingWindowRule(Duration.ofMillis(100), Clock.systemUTC()))
 				.buildSync();
 
 		shepherd.add("k", "lolo", 0);
@@ -306,6 +315,7 @@ public class SyncIntegrationTest {
 		shepherd.add("k2", "lala", 10);
 		shepherd.add("k", "lele", 110);
 
+		Thread.sleep(101);
 		shepherd.checkWindows();
 
 		List<List<String>> result = listCollector.get();
@@ -331,10 +341,10 @@ public class SyncIntegrationTest {
 				.threads(1)
 				.withWindow(
 						Duration.ofMillis(10),
-						new GroupExpiredSlidingRule(Duration.ofMillis(500), true))
+						new GroupExpiredSlidingRule(Duration.ofMillis(500), true, Clock.systemUTC()))
 				.buildSync();
 
-		long instant =  System.currentTimeMillis() - 1000;
+		long instant = System.currentTimeMillis() - 1000;
 		shepherd.add("lolo", instant);
 		shepherd.add("lala", instant + 10);
 		shepherd.add("lele", instant + 510);
@@ -344,7 +354,7 @@ public class SyncIntegrationTest {
 		List<List<String>> result = listCollector.get();
 		assertTrue(result.isEmpty());
 
-		Thread.sleep(500);
+		Thread.sleep(501);
 
 		shepherd.checkWindows();
 
@@ -370,13 +380,14 @@ public class SyncIntegrationTest {
 				.withValuesStorageProvider(InMemoryValuesStorage::new)
 				.withWindow(
 						Duration.ofMillis(20),
-						new GroupExpiredSlidingRule(Duration.ofMillis(500), false))
+						new GroupExpiredSlidingRule(Duration.ofMillis(500), false, Clock.systemUTC()))
 				.buildSync();
 
 		shepherd.add(Long.valueOf(11), 0);
 		shepherd.add(Long.valueOf(22), 10);
 		shepherd.add(Long.valueOf(33), 110);
 
+		Thread.sleep(501);
 		shepherd.checkWindows();
 
 		List<Number> result = listCollector.get();
@@ -397,7 +408,7 @@ public class SyncIntegrationTest {
 				.withValuesStorageProvider(InMemoryValuesStorage::new)
 				.withWindow(
 						Duration.ofMillis(50),
-						new AvgTumblingRule(Duration.ofMillis(200), Duration.ofMillis(100)))
+						new AvgTumblingRule(Duration.ofMillis(200), Duration.ofMillis(100), Clock.systemUTC()))
 				.buildSync();
 
 		shepherd.add("k1", 10L, 0);
@@ -405,6 +416,7 @@ public class SyncIntegrationTest {
 		shepherd.add("k1", 20L, 10);
 		shepherd.add("k1", 30L, 110);
 
+		Thread.sleep(201);
 		shepherd.checkWindows();
 
 		List<Number> result = listCollector.get();

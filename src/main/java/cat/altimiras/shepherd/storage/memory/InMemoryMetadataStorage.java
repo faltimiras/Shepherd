@@ -2,14 +2,13 @@ package cat.altimiras.shepherd.storage.memory;
 
 import cat.altimiras.shepherd.Metadata;
 import cat.altimiras.shepherd.storage.MetadataStorage;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 public class InMemoryMetadataStorage<K> implements MetadataStorage<K> {
 
-	private Map<K, Metadata<K>> storage = new HashMap<>();
+	private final Map<K, Metadata<K>> storage = new HashMap<>();
 
 	@Override
 	public void put(K key, Metadata<K> metadata) {
